@@ -1,0 +1,14 @@
+package com.yuyuko.mall.stock;
+
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
+
+@SpringBootApplication(exclude = DataSourceAutoConfiguration.class)
+public class StockApplication {
+
+    public static void main(String[] args) {
+        SpringApplication.run(StockApplication.class, args);
+    }
+
+}

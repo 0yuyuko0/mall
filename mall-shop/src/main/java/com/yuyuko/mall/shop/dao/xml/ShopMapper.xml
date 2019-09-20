@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.yuyuko.mall.shop.dao.ShopDao">
+
+    <select id="getShop" resultType="com.yuyuko.mall.shop.dto.ShopInfoDTO">
+        select id,
+               name,
+               description,
+               avatar,
+               location,
+               product_count,
+               like_count,
+               star,
+               product_rate,
+               logistics_rate,
+               after_sales_rate,
+               time_create
+        from shop
+        where id = #{shopId}
+    </select>
+</mapper>

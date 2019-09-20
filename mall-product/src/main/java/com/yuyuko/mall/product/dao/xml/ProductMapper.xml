@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.yuyuko.mall.product.dao.ProductDao">
+    <insert id="insert">
+        insert into product(id, seller_id, shop_id, brand_id, category_id, name, price, avatar)
+        values (#{id}, #{sellerId}, #{shopId}, #{brandId}, #{categoryId}, #{name},
+                #{price}, #{avatar});
+    </insert>
+
+    <select id="getProduct" resultType="com.yuyuko.mall.product.dto.ProductDTO">
+        select id,
+               shop_id,
+               brand_id,
+               category_id,
+               name,
+               price,
+               avatar,
+               sales,
+               comment_count,
+               good_comment_count
+        from product
+        where id = #{productId}
+    </select>
+    <select id="listCartItemProducts" resultType="com.yuyuko.mall.product.dto.CartItemProductDTO">
+        select id,name,price,avatar
+        from product
+        where id in
+        <foreach collection="list" open="(" close=")" separator="," item="item">
+            #{item}
+        </foreach>
+    </select>
+</mapper>

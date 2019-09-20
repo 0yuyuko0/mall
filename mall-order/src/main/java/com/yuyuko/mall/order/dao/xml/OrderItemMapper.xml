@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.yuyuko.mall.order.dao.OrderItemDao">
+
+    <insert id="createOrderItems">
+        insert into order_item
+        (id,order_id, product_id, product_name, product_avatar, count, price)
+        values
+        <foreach collection="list" item="item" separator=",">
+            (#{item.id},#{item.orderId},#{item.productId},#{item.productName},
+            #{item.productAvatar},#{item.count},#{item.price})
+        </foreach>
+    </insert>
+    <select id="listOrderItems" resultType="com.yuyuko.mall.order.dto.OrderItemDTO">
+        select product_id as id, product_name as name, product_avatar as avatar, count, price
+        from order_item
+        where id = #{orderId}
+    </select>
+</mapper>

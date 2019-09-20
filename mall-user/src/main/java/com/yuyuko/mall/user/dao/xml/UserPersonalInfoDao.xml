@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.yuyuko.mall.user.dao.UserPersonalInfoDao">
+    <resultMap id="UserDTO" type="com.yuyuko.mall.user.dto.UserPersonalInfoDTO">
+        <id property="id" column="id"/>
+        <result property="username" column="username"/>
+        <result property="nickname" column="nickname"/>
+        <result property="avatar" column="avatar"/>
+        <result property="isSeller" column="is_seller"/>
+    </resultMap>
+    <insert id="insert">
+        insert into user_personal_info (id, user_id, username)
+        values (#{id},#{userId},#{username});
+    </insert>
+    <select id="getUserPersonalInfoByUserId" resultMap="UserDTO">
+        select id, username, nickname, avatar, is_seller
+        from user_personal_info
+        where user_id = #{userId}
+    </select>
+
+</mapper>

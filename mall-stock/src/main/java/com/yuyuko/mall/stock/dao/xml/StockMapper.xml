@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.yuyuko.mall.stock.dao.StockDao">
+    <insert id="insert">
+        insert into stock (id, product_id, stock)
+        values (#{id},#{productId},#{stock});
+    </insert>
+
+    <update id="deductStock">
+        update stock
+        set stock = stock - #{count}
+        where product_id = #{productId}
+    </update>
+
+    <select id="getStock" resultType="java.lang.Integer">
+        select stock
+        from stock
+        where product_id = #{productId}
+    </select>
+    <select id="listStocks" resultType="com.yuyuko.mall.stock.dto.StockDTO">
+        select product_id,stock
+        from stock
+        where product_id in
+        <foreach collection="list" item="item" separator="," open="(" close=")">
+            #{item}
+        </foreach>
+    </select>
+</mapper>

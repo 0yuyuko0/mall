@@ -1,0 +1,6 @@
+server:
+  servlet:
+    session:
+      cookie:
+        name: SESSION
+        http-only: true

@@ -1,0 +1,28 @@
+spring:
+  cloud:
+    nacos:
+      discovery:
+        server-addr: 127.0.0.1:8848
+      config:
+        server-addr: 127.0.0.1:8848
+        file-extension: yaml
+        shared-dataids: log.yaml,redis.yaml,actuator.yaml
+  application:
+    name: shop
+  main:
+    allow-bean-definition-overriding: true
+dubbo:
+  protocol:
+    name: dubbo
+    port: -1
+  registry:
+    address: spring-cloud://localhost
+    check: false
+  scan:
+    base-packages: com.yuyuko.mall.shop.api.impl
+server:
+  port: 28007
+mybatis:
+  mapper-locations: classpath:com/yuyuko/mall/shop/dao/xml/*.xml
+  configuration:
+    map-underscore-to-camel-case: true

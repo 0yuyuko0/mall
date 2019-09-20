@@ -1,0 +1,32 @@
+spring:
+  cloud:
+    nacos:
+      discovery:
+        server-addr: 127.0.0.1:8848
+      config:
+        server-addr: 127.0.0.1:8848
+        file-extension: yaml
+        shared-dataids: log.yaml,redis.yaml,actuator.yaml,rocketmq.yaml
+  application:
+    name: seller-product
+  main:
+    allow-bean-definition-overriding: true
+dubbo:
+  protocol:
+    name: dubbo
+    port: -1
+  consumer:
+    check: false
+  registry:
+    address: spring-cloud://localhost
+    check: false
+  cloud:
+    subscribed-services: product,seller
+server:
+  port: 28004
+mybatis-plus:
+  mapper-locations: classpath:com/yuyuko/mall/seller/product/dao/xml/*.xml
+  executor-type: batch
+rocketmq:
+  producer:
+    group: product

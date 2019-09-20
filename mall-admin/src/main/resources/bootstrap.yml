@@ -1,0 +1,31 @@
+spring:
+  cloud:
+    nacos:
+      discovery:
+        server-addr: 127.0.0.1:8848
+      config:
+        server-addr: 127.0.0.1:8848
+        file-extension: yaml
+        shared-dataids: log.yaml,redis.yaml,actuator.yaml,rocketmq.yaml
+  application:
+    name: admin
+  main:
+    allow-bean-definition-overriding: true
+dubbo:
+  protocol:
+    name: dubbo
+    port: -1
+  consumer:
+    check: false
+  registry:
+    address: spring-cloud://localhost
+    check: false
+  cloud:
+    subscribed-services: user
+rocketmq:
+  producer:
+    group: admin
+mybatis:
+  mapper-locations: classpath:com/yuyuko/mall/admin/dao/xml/*.xml
+  configuration:
+    map-underscore-to-camel-case: true

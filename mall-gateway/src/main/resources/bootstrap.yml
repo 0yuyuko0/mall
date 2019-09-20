@@ -1,0 +1,84 @@
+session:
+  userInfo:
+    name: userSessionInfo
+  cookie:
+    name: SESSION
+spring:
+  application:
+    name: gateway
+  cloud:
+    nacos:
+      discovery:
+        server-addr: 127.0.0.1:8848
+      config:
+        server-addr: 127.0.0.1:8848
+        file-extension: yaml
+        shared-dataids: log.yaml,redis.yaml,actuator.yaml
+    gateway:
+      discovery:
+        locator:
+          lower-case-service-id: true
+      routes:
+        - id: admin_auth_route
+          uri: lb://admin
+          predicates:
+            - Path=/admin/logout
+          filters:
+            - Authentication
+            - name: RemovePathServiceName
+              args:
+                serviceName: admin
+        - id: admin_non_auth_route
+          uri: lb://admin
+          predicates:
+            - Path=/admin/**
+          filters:
+            - name: RemovePathServiceName
+              args:
+                serviceName: admin
+        - id: seller_auth_route
+          uri: lb://seller
+          predicates:
+            - Path=/seller/**
+          filters:
+            - Authentication
+            - Seller
+            - name: RemovePathServiceName
+              args:
+                serviceName: seller
+        - id: seller_product_auth_route
+          uri: lb://seller-product
+          predicates:
+            - Path=/seller-product/**
+          filters:
+            - Authentication
+            - Seller
+            - name: RemovePathServiceName
+              args:
+                serviceName: seller-product
+        - id: product_search_non_route
+          uri: lb://product-search
+          predicates:
+            - Path=/search/product/
+          filters:
+            - name: RemovePathServiceName
+              args:
+                serviceName: product-search
+        - id: order_search_auth_route
+          uri: lb://order-search
+          predicates:
+            - Path=/search/order/
+          filters:
+            - Authentication
+            - name: RemovePathServiceName
+              args:
+                serviceName: order-search
+        - id: cart_auth_route
+          uri: lb://cart
+          predicates:
+            - Path=/cart/**
+          filters:
+            - Authentication
+            - name: RemovePathServiceName
+              args:
+                serviceName: cart
