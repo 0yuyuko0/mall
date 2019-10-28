@@ -1,0 +1,13 @@
+mybatis:
+  mapper-locations: classpath:com/yuyuko/mall/seller/dao/xml/*.xml
+  configuration:
+    map-underscore-to-camel-case: true
+swagger:
+  title: Seller
+  description: 卖家信息管理
+  exclude-path:
+    - /actuator/**
+    - /error
+  apply-default-response-messages: false
+  global-response-message:
+    get:

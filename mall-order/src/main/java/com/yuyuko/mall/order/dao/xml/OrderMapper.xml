@@ -28,6 +28,11 @@
                 #{timeExpectedDelivery}, #{consigneeName}, #{consigneePhoneNumber},
                 #{deliveryAddress}, #{timeCreate});
     </insert>
+    <update id="updateOrderStatus">
+        update mall_order.`order`
+        set status = #{status}
+        where id = #{id}
+    </update>
     <select id="getOrder" resultType="com.yuyuko.mall.order.dto.OrderDTO">
         select id,
                user_id,
@@ -52,5 +57,10 @@
         select true
         from `order`
         where id = #{id}
+    </select>
+    <select id="checkOrderStatus" resultType="java.lang.Boolean">
+        select true
+        from `order`
+        where id = #{id} and status = #{status}
     </select>
 </mapper>

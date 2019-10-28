@@ -7,13 +7,11 @@ import org.springframework.stereotype.Repository;
 
 import java.util.Optional;
 
-@Repository
+@Mapper
 public interface UserDao {
     UserDTO getUserByUsername(String username);
 
     int insert(UserDO userDO);
 
     Optional<Boolean> existById(Long userId);
-
-    int deleteByUsername(String username);
 }

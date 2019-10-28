@@ -1,0 +1,12 @@
+
+dubbo:
+  protocol:
+    name: dubbo
+    port: -1
+  consumer:
+    check: false
+  registry:
+    address: spring-cloud://localhost
+    check: false
+  scan:
+    base-packages: com.yuyuko.mall.seller.api.impl

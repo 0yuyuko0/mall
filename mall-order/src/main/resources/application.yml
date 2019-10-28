@@ -1,0 +1,17 @@
+
+mybatis:
+  mapper-locations: classpath:com/yuyuko/mall/order/dao/xml/*.xml
+  configuration:
+    map-underscore-to-camel-case: true
+rocketmq:
+  producer:
+    group: order
+swagger:
+  title: Order
+  description: 订单
+  exclude-path:
+    - /actuator/**
+    - /error
+  apply-default-response-messages: false
+  global-response-message:
+    get:

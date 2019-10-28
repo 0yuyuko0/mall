@@ -8,10 +8,10 @@ import com.yuyuko.mall.admin.exception.UsernameAlreadyExistException;
 import com.yuyuko.mall.admin.exception.UsernameNotExistsException;
 import com.yuyuko.mall.admin.message.UserRegisterMessage;
 import com.yuyuko.mall.admin.param.LoginParam;
-import com.yuyuko.mall.common.utils.ProtoStuffUtils;
-import com.yuyuko.mall.common.utils.SnowflakeIdGenerator;
+import com.yuyuko.mall.common.idgenerator.IdGenerator;
+import com.yuyuko.mall.common.message.MessageCodec;
 import com.yuyuko.mall.session.pojo.UserSessionInfo;
-import com.yuyuko.mall.user.api.UserPersonalInfoService;
+import com.yuyuko.mall.user.api.UserPersonalInfoRemotingService;
 import com.yuyuko.mall.user.dto.UserPersonalInfoDTO;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.dubbo.config.annotation.Reference;
@@ -21,6 +21,7 @@ import org.apache.rocketmq.spring.annotation.RocketMQTransactionListener;
 import org.apache.rocketmq.spring.core.RocketMQLocalTransactionListener;
 import org.apache.rocketmq.spring.core.RocketMQLocalTransactionState;
 import org.apache.rocketmq.spring.core.RocketMQTemplate;
+import org.apache.rocketmq.spring.support.RocketMQHeaders;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -32,13 +33,13 @@ import org.springframework.stereotype.Service;
 @Slf4j
 public class UserService {
     @Autowired
-    UserDao userDao;
+    private UserDao userDao;
 
     @Reference
-    private UserPersonalInfoService userPersonalInfoService;
+    private UserPersonalInfoRemotingService userPersonalInfoRemotingService;
 
     @Autowired
-    RocketMQTemplate rocketMQTemplate;
+    private RocketMQTemplate rocketMQTemplate;
 
     public UserSessionInfo login(LoginParam loginParam) throws IncorrectUsernameOrPasswordException,
             UsernameNotExistsException {
@@ -52,7 +53,7 @@ public class UserService {
         if (!password.equals(user.getPassword()))
             throw new IncorrectUsernameOrPasswordException();
         Long userId = user.getId();
-        return convertToUserSessionInfo(userPersonalInfoService.getUserPersonalInfo(userId));
+        return convertToUserSessionInfo(userPersonalInfoRemotingService.getUserPersonalInfo(userId));
     }
 
     private UserSessionInfo convertToUserSessionInfo(UserPersonalInfoDTO userPersonalInfoDTO) {
@@ -61,17 +62,22 @@ public class UserService {
         return userSessionInfo;
     }
 
+    @Autowired
+    private MessageCodec messageCodec;
 
     @Autowired
-    SnowflakeIdGenerator snowflakeIdGenerator;
+    private IdGenerator idGenerator;
 
     public void register(LoginParam loginParam) throws UsernameAlreadyExistException {
-        long userId = snowflakeIdGenerator.nextId();
+        long userId = idGenerator.nextId();
 
         TransactionSendResult sendResult = rocketMQTemplate.sendMessageInTransaction("tx-admin",
                 "admin:register",
-                MessageBuilder.withPayload(ProtoStuffUtils.serialize(buildUserRegisterMessage(loginParam,
-                        userId))).build(),
+                MessageBuilder
+                        .withPayload(messageCodec.encode(buildUserRegisterMessage(loginParam,
+                                userId)))
+                        .setHeader(RocketMQHeaders.KEYS, idGenerator.nextId())
+                        .build(),
                 loginParam
         );
 
@@ -93,7 +99,7 @@ public class UserService {
         @Override
         public RocketMQLocalTransactionState executeLocalTransaction(Message msg, Object arg) {
             UserRegisterMessage registerMessage =
-                    ProtoStuffUtils.deserialize((byte[]) msg.getPayload(),
+                    messageCodec.decode((byte[]) msg.getPayload(),
                             UserRegisterMessage.class);
             LoginParam loginParam = (LoginParam) arg;
 
@@ -111,6 +117,7 @@ public class UserService {
                 return RocketMQLocalTransactionState.ROLLBACK;
             } catch (Throwable ex) {
                 log.warn(ex.getMessage());
+                return RocketMQLocalTransactionState.UNKNOWN;
             }
 
             return RocketMQLocalTransactionState.COMMIT;
@@ -119,7 +126,7 @@ public class UserService {
         @Override
         public RocketMQLocalTransactionState checkLocalTransaction(Message msg) {
             UserRegisterMessage registerMessage =
-                    ProtoStuffUtils.deserialize((byte[]) msg.getPayload(),
+                    messageCodec.decode((byte[]) msg.getPayload(),
                             UserRegisterMessage.class);
             Long userId = registerMessage.getUserId();
             if (userDao.existById(userId).orElse(false))

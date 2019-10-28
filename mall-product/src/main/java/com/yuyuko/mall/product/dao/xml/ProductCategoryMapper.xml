@@ -1,10 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.yuyuko.mall.product.dao.ProductCategoryDao">
+    <insert id="insert">
+        insert into product_category (id, name, parent_id, level, is_leaf)
+        values (#{id}, #{name}, #{parentId}, #{level}, #{isLeaf});
+    </insert>
 
-    <select id="getProductCategory" resultType="com.yuyuko.mall.product.dto.ProductCategoryDTO">
-        select id,name,is_leaf
+    <select id="listChildCategories" resultType="com.yuyuko.mall.product.dto.ProductCategoryDTO">
+        select id, name, level, is_leaf
         from product_category
-        where parent_id = #{categoryId}
+        where parent_id = #{parentId}
     </select>
 </mapper>

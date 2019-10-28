@@ -5,10 +5,10 @@ import com.yuyuko.mall.cart.bo.ShopCartItemBO;
 import com.yuyuko.mall.cart.dao.CartDao;
 import com.yuyuko.mall.cart.dto.CartItemDTO;
 import com.yuyuko.mall.cart.entity.CartItemDO;
-import com.yuyuko.mall.cart.param.CartAddParam;
+import com.yuyuko.mall.cart.param.CartUpdateParam;
+import com.yuyuko.mall.common.idgenerator.IdGenerator;
 import com.yuyuko.mall.common.utils.CollectionUtils;
-import com.yuyuko.mall.common.utils.SnowflakeIdGenerator;
-import com.yuyuko.mall.product.api.ProductService;
+import com.yuyuko.mall.product.api.ProductRemotingService;
 import com.yuyuko.mall.product.dto.CartItemProductDTO;
 import org.apache.dubbo.config.annotation.Reference;
 import org.springframework.beans.BeanUtils;
@@ -27,10 +27,10 @@ public class CartService {
     CartDao cartDao;
 
     @Reference
-    private ProductService productService;
+    private ProductRemotingService productRemotingService;
 
     @Autowired
-    SnowflakeIdGenerator snowflakeIdGenerator;
+    IdGenerator idGenerator;
 
     public List<ShopCartItemBO> getCart(Long userId) {
         List<CartItemDTO> cartItems = cartDao.getCart(userId);
@@ -42,7 +42,8 @@ public class CartService {
         List<Long> productIds =
                 cartItems.stream().map(CartItemDTO::getProductId).collect(Collectors.toList());
 
-        List<CartItemProductDTO> cartItemProducts = productService.listCartItemProducts(productIds);
+        List<CartItemProductDTO> cartItemProducts =
+                productRemotingService.listCartItemProducts(productIds);
 
         Map<Long, CartItemProductDTO> cartItemProductMap =
                 CollectionUtils.convertListToMap(cartItemProducts,
@@ -74,16 +75,14 @@ public class CartService {
     }
 
 
-    public void addCartItem(Long userId, CartAddParam addParam) {
-        CartItemDTO cartItem = cartDao.getCartItem(userId, addParam.getProductId());
+    public void updateCartItem(Long userId, CartUpdateParam param) {
+        CartItemDTO cartItem = cartDao.getCartItem(userId, param.getProductId());
         if (cartItem == null) {
-            cartDao.insert(buildCartItemDO(addParam, userId));
-        } else if (addParam.getCount() + cartItem.getCount() == 0) {
-            cartDao.deleteById(cartItem.getId());
-        } else if (addParam.getCount() + cartItem.getCount() < 0) {
-
+            cartDao.addCartItem(buildCartItemDO(param, userId));
         } else {
-            if (addParam.getCount() != 0)
+            if (param.getCount() + cartItem.getCount() == 0) {
+                cartDao.deleteCartItemById(cartItem.getId());
+            } else if (param.getCount() > 0)
                 cartDao.updateCartItemCount(cartItem.getId(), cartItem.getCount());
         }
     }
@@ -102,16 +101,16 @@ public class CartService {
                 .setCartItems(new ArrayList<>());
     }
 
-    private CartItemDO buildCartItemDO(CartAddParam addParam, Long userId) {
+    private CartItemDO buildCartItemDO(CartUpdateParam addParam, Long userId) {
         CartItemDO cartItemDO = new CartItemDO();
         BeanUtils.copyProperties(addParam, cartItemDO);
-        cartItemDO.setId(snowflakeIdGenerator.nextId());
+        cartItemDO.setId(idGenerator.nextId());
         cartItemDO.setUserId(userId);
         return cartItemDO;
     }
 
 
     public void deleteCartItem(Long cartItemId) {
-        cartDao.deleteById(cartItemId);
+        cartDao.deleteCartItemById(cartItemId);
     }
 }

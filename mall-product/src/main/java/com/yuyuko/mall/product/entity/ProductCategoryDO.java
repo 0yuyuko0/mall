@@ -9,7 +9,7 @@ import java.time.LocalDateTime;
 
 /**
  * <p>
- * 
+ *
  * </p>
  *
  * @author yuyuko
@@ -19,13 +19,11 @@ import java.time.LocalDateTime;
 @EqualsAndHashCode(callSuper = false)
 @Accessors(chain = true)
 public class ProductCategoryDO implements Serializable {
-
-
     private Long id;
 
     private String name;
 
-    private String path;
+    private Long parentId;
 
     private Integer level;
 

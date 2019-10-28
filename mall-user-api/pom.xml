@@ -20,10 +20,6 @@
             <version>${mall-common.version}</version>
         </dependency>
         <dependency>
-            <groupId>com.yuyuko.idempotent</groupId>
-            <artifactId>idempotent-spring-boot-starter</artifactId>
-        </dependency>
-        <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
         </dependency>

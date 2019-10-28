@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.yuyuko.mall.user.dao.UserHomeInfoDao">
+    <insert id="insert">
+        insert into mall_user.user_home_info(id, user_id)
+        VALUES (#{id}, #{userId})
+    </insert>
+    <select id="getUserHomeInfo" resultType="com.yuyuko.mall.user.dto.UserHomeInfoDTO">
+        select like_product_count,
+               like_shop_count,
+               browse_history_count,
+               cart_Item_count,
+               wait_pay_count,
+               wait_send_count,
+               wait_receive_count,
+               wait_rate_count
+        from mall_user.user_home_info
+        where user_id = #{userId}
+    </select>
+</mapper>

@@ -15,7 +15,6 @@ public class ProductSearchServiceTests {
     @Autowired
     ProductSearchService productSearchService;
 
-
     @Test
     public void searchProducts() {
         ProductSearchParam productSearchParam = new ProductSearchParam();

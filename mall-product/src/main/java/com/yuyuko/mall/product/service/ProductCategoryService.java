@@ -20,16 +20,16 @@ import java.util.List;
 @Service
 public class ProductCategoryService {
     @Autowired
-    ProductCategoryDao productCategoryDao;
+    private ProductCategoryDao productCategoryDao;
 
     @Autowired
-    BrandDao brandDao;
+    private BrandDao brandDao;
 
-    public List<ProductCategoryDTO> getProductCategory(Long categoryId) {
-        return productCategoryDao.getProductCategory(categoryId);
+    public List<ProductCategoryDTO> listChildCategories(Long categoryId) {
+        return productCategoryDao.listChildCategories(categoryId);
     }
 
-    public List<BrandDTO> getProductCategoryBrands(Long categoryId) {
-        return brandDao.getProductCategoryBrands(categoryId);
+    public List<BrandDTO> listBrandsOfCategory(Long categoryId) {
+        return brandDao.listBrandsOfCategory(categoryId);
     }
 }

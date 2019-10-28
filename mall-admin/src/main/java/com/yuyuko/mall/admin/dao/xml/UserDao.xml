@@ -11,10 +11,6 @@
         insert into user (id, username, password)
         values (#{id}, #{username}, #{password});
     </insert>
-    <delete id="deleteByUsername">
-        delete from user
-        where username = #{username}
-    </delete>
 
     <select id="getUserByUsername" resultMap="UserDTO">
         select id, username, password

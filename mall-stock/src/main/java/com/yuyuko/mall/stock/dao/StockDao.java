@@ -3,12 +3,13 @@ package com.yuyuko.mall.stock.dao;
 import com.yuyuko.mall.stock.dto.StockDTO;
 import com.yuyuko.mall.stock.entity.StockDO;
 import com.yuyuko.mall.stock.param.StockDeductParam;
+import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
 
-@Repository
+@Mapper
 public interface StockDao {
     Integer getStock(Long productId);
 

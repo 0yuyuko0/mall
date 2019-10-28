@@ -1,0 +1,13 @@
+mybatis:
+  mapper-locations: classpath:com/yuyuko/mall/product/dao/xml/*.xml
+  configuration:
+    map-underscore-to-camel-case: true
+swagger:
+  title: Product
+  description: 商品
+  exclude-path:
+    - /actuator/**
+    - /error
+  apply-default-response-messages: false
+  global-response-message:
+    get:

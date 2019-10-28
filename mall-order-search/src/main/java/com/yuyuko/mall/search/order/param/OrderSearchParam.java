@@ -1,5 +1,7 @@
 package com.yuyuko.mall.search.order.param;
 
+import io.swagger.annotations.ApiModel;
+import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 import org.hibernate.validator.constraints.Range;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -7,26 +9,36 @@ import org.springframework.format.annotation.DateTimeFormat;
 import java.time.LocalDateTime;
 
 @Data
+@ApiModel
 public class OrderSearchParam {
+    @ApiModelProperty(value = "搜索关键字", position = 1, required = true)
     private String keyword;
 
+    @ApiModelProperty(value = "订单id", position = 2)
     private Long orderId;
 
+    @ApiModelProperty(value = "商品id", position = 3)
     private Long productId;
 
+    @ApiModelProperty(value = "订单状态", position = 4)
     private Integer status;
 
-    private TimeCreateRange timeCreate;
+    @ApiModelProperty(value = "时间区间", position = 5)
+    private TimeRange timeRange;
 
     @Range(max = 100)
+    @ApiModelProperty(value = "搜索页数", position = 6)
     int page = 0;
 
     @Data
-    public static class TimeCreateRange {
+    @ApiModel
+    public static class TimeRange {
         @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
+        @ApiModelProperty(value = "起始时间，格式如下 \"yyyy-MM-dd'T'HH:mm:ss\"，举例：2000-10-31T01:30:00", position = 1)
         private LocalDateTime from;
 
         @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
+        @ApiModelProperty(value = "终止时间", position = 2)
         private LocalDateTime to;
     }
 }

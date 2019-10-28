@@ -1,26 +1,3 @@
 spring:
-  cloud:
-    nacos:
-      discovery:
-        server-addr: 127.0.0.1:8848
-      config:
-        server-addr: 127.0.0.1:8848
-        file-extension: yaml
-        shared-dataids: log.yaml,actuator.yaml,rocketmq.yaml
-  application:
-    name: product-search
-  main:
-    allow-bean-definition-overriding: true
-dubbo:
-  protocol:
-    name: dubbo
-    port: -1
-  consumer:
-    check: false
-  registry:
-    address: spring-cloud://localhost
-    check: false
-  scan:
-    base-packages: com.yuyuko.mall.search.product.api.impl
-server:
-  port: 28005
+  profiles:
+    active: dev

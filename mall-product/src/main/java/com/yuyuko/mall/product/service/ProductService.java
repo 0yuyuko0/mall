@@ -1,5 +1,6 @@
 package com.yuyuko.mall.product.service;
 
+import com.yuyuko.mall.common.utils.CollectionUtils;
 import com.yuyuko.mall.product.bo.ProductBO;
 import com.yuyuko.mall.product.dao.ProductDao;
 import com.yuyuko.mall.product.dto.CartItemProductDTO;
@@ -8,23 +9,18 @@ import com.yuyuko.mall.product.entity.ProductDO;
 import com.yuyuko.mall.product.manager.ProductManager;
 import com.yuyuko.mall.product.param.ProductCreateParam;
 import com.yuyuko.mall.shop.dto.ShopInfoDTO;
-import com.yuyuko.mall.stock.api.StockService;
-import com.yuyuko.mall.stock.exception.StockNotEnoughException;
+import com.yuyuko.mall.stock.api.StockRemotingService;
 import com.yuyuko.mall.stock.param.StockCreateParam;
-import com.yuyuko.mall.stock.param.StockDeductParam;
-import io.seata.spring.annotation.GlobalLock;
 import io.seata.spring.annotation.GlobalTransactional;
 import org.apache.dubbo.config.annotation.Reference;
-import org.apache.ibatis.session.SqlSessionFactory;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.stereotype.Service;
 
+import java.util.Collections;
 import java.util.List;
 
-import com.yuyuko.mall.shop.api.ShopInfoService;
-import org.springframework.transaction.annotation.Transactional;
+import com.yuyuko.mall.shop.api.ShopInfoRemotingService;
 
 /**
  * <p>
@@ -37,26 +33,26 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 public class ProductService {
     @Autowired
-    ProductDao productDao;
+    private ProductDao productDao;
 
     @Autowired
-    ProductManager productManager;
+    private ProductManager productManager;
 
     @Reference
-    ShopInfoService shopService;
+    private ShopInfoRemotingService shopService;
 
     @Reference
-    StockService stockService;
+    private StockRemotingService stockRemotingService;
 
     public ProductBO getProduct(Long productId) {
-        ProductDTO productDTO = buildProductDTO(productId);
+        ProductDTO productDTO = getProductDTO(productId);
 
         return buildProductBO(productDTO);
     }
 
-    private ProductDTO buildProductDTO(Long productId) {
+    private ProductDTO getProductDTO(Long productId) {
         ProductDTO productDTO = productManager.getProduct(productId);
-        Integer stock = stockService.getStock(productDTO.getId());
+        Integer stock = stockRemotingService.getStock(productDTO.getId());
         productDTO.setStock(stock);
         return productDTO;
     }
@@ -76,7 +72,7 @@ public class ProductService {
         ProductDO productDO = buildProductDO(createParam);
         productDao.insert(productDO);
 
-        stockService.createProductStock(new StockCreateParam(createParam.getId(),
+        stockRemotingService.createProductStock(new StockCreateParam(createParam.getId(),
                 createParam.getStock()));
     }
 
@@ -87,7 +83,11 @@ public class ProductService {
     }
 
     public List<CartItemProductDTO> listCartItemProducts(List<Long> productIds) {
-        return productDao.listCartItemProducts(productIds);
+        List<CartItemProductDTO> cartItemProductDTOs = productDao.listCartItemProducts(productIds);
+
+        List<Integer> stocks = stockRemotingService.listStocks(productIds);
+        CollectionUtils.consume(cartItemProductDTOs, stocks, CartItemProductDTO::setStock);
+        return cartItemProductDTOs;
     }
 
     public boolean exist(Long productId) {

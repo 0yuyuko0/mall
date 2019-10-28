@@ -1,8 +1,17 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.yuyuko.mall.product.dao.BrandDao">
+    <insert id="insert">
+        insert into brand (id, name, alias)
+        values (#{id},#{name},#{alias});
+    </insert>
+    <insert id="insertProductCategoryBrandRelation">
+        insert into product_category_brand_relation
+            (id, product_category_id, brand_id)
+        values (#{id},#{productCategoryId},#{brandId});
+    </insert>
 
-    <select id="getProductCategoryBrands" resultType="com.yuyuko.mall.product.dto.BrandDTO">
+    <select id="listBrandsOfCategory" resultType="com.yuyuko.mall.product.dto.BrandDTO">
         select brand.id,name,alias
         from product_category_brand_relation join brand on brand_id = brand.id
         where product_category_id = #{categoryId}

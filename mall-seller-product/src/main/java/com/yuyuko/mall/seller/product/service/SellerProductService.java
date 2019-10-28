@@ -1,11 +1,11 @@
 package com.yuyuko.mall.seller.product.service;
 
-import com.yuyuko.mall.common.utils.ProtoStuffUtils;
-import com.yuyuko.mall.common.utils.SnowflakeIdGenerator;
-import com.yuyuko.mall.product.api.ProductService;
+import com.yuyuko.mall.common.idgenerator.IdGenerator;
+import com.yuyuko.mall.common.message.MessageCodec;
+import com.yuyuko.mall.product.api.ProductRemotingService;
 import com.yuyuko.mall.product.message.ProductCreateMessage;
 import com.yuyuko.mall.product.param.ProductCreateParam;
-import com.yuyuko.mall.seller.api.SellerInfoService;
+import com.yuyuko.mall.seller.api.SellerInfoRemotingService;
 import com.yuyuko.mall.seller.dto.SellerShopSimpleInfoDTO;
 import com.yuyuko.mall.seller.product.param.ProductPublishParam;
 import org.apache.dubbo.config.annotation.Reference;
@@ -13,6 +13,7 @@ import org.apache.rocketmq.spring.annotation.RocketMQTransactionListener;
 import org.apache.rocketmq.spring.core.RocketMQLocalTransactionListener;
 import org.apache.rocketmq.spring.core.RocketMQLocalTransactionState;
 import org.apache.rocketmq.spring.core.RocketMQTemplate;
+import org.apache.rocketmq.spring.support.RocketMQHeaders;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.Message;
@@ -32,20 +33,24 @@ import java.time.LocalDateTime;
 @Service
 public class SellerProductService {
     @Reference
-    private ProductService productService;
+    private ProductRemotingService productRemotingService;
 
     @Reference
-    private SellerInfoService sellerInfoService;
+    private SellerInfoRemotingService sellerInfoRemotingService;
 
     @Autowired
-    RocketMQTemplate rocketMQTemplate;
+    private RocketMQTemplate rocketMQTemplate;
 
     @Autowired
-    SnowflakeIdGenerator snowflakeIdGenerator;
+    private IdGenerator idGenerator;
+
+    @Autowired
+    private MessageCodec messageCodec;
 
 
     public void publishProduct(Long sellerId, ProductPublishParam publishParam) {
-        SellerShopSimpleInfoDTO shopSimpleInfoDTO = sellerInfoService.getSellerShopInfo(sellerId);
+        SellerShopSimpleInfoDTO shopSimpleInfoDTO =
+                sellerInfoRemotingService.getSellerShopInfo(sellerId);
 
         ProductCreateParam createParam = buildProductCreateParam(sellerId,
                 shopSimpleInfoDTO.getShopId(), publishParam);
@@ -53,10 +58,11 @@ public class SellerProductService {
 
         rocketMQTemplate.sendMessageInTransaction("tx-product", "product:create",
                 MessageBuilder.withPayload(
-                        ProtoStuffUtils.serialize(
+                        messageCodec.encode(
                                 buildProductCreateMessage(publishParam, shopSimpleInfoDTO,
                                         createParam.getId()))
-                ).build(),
+                ).setHeader(RocketMQHeaders.KEYS, idGenerator.nextId())
+                        .build(),
                 createParam);
     }
 
@@ -69,20 +75,20 @@ public class SellerProductService {
             return RocketMQLocalTransactionState.COMMIT;
         }
 
+        private void persistProduct(ProductCreateParam createParam) {
+            productRemotingService.createProduct(createParam);
+        }
+
         @Override
         public RocketMQLocalTransactionState checkLocalTransaction(Message msg) {
             ProductCreateParam createParam =
-                    ProtoStuffUtils.deserialize((byte[]) msg.getPayload(),
+                    messageCodec.decode((byte[]) msg.getPayload(),
                             ProductCreateParam.class);
-            if (productService.exist(createParam.getId()))
+            if (productRemotingService.exist(createParam.getId()))
                 return RocketMQLocalTransactionState.COMMIT;
             else
                 return RocketMQLocalTransactionState.ROLLBACK;
         }
-    }
-
-    private void persistProduct(ProductCreateParam createParam) {
-        productService.createProduct(createParam);
     }
 
     private ProductCreateParam buildProductCreateParam(Long sellerId, Long shopId,
@@ -90,7 +96,7 @@ public class SellerProductService {
         ProductCreateParam createParam = new ProductCreateParam();
         BeanUtils.copyProperties(publishParam, createParam);
 
-        createParam.setId(snowflakeIdGenerator.nextId());
+        createParam.setId(idGenerator.nextId());
         createParam.setSellerId(sellerId);
         createParam.setShopId(shopId);
         return createParam;

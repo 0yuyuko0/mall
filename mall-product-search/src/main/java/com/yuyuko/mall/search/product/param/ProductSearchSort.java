@@ -1,5 +1,8 @@
 package com.yuyuko.mall.search.product.param;
 
+import io.swagger.annotations.ApiModel;
+import io.swagger.annotations.ApiModelProperty;
+
 public class ProductSearchSort {
     public static final int GENERAL = 0;
 

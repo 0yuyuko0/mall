@@ -25,9 +25,21 @@
     <select id="listCartItemProducts" resultType="com.yuyuko.mall.product.dto.CartItemProductDTO">
         select id,name,price,avatar
         from product
-        where id in
-        <foreach collection="list" open="(" close=")" separator="," item="item">
-            #{item}
-        </foreach>
+        where
+        <choose>
+            <when test="list != null and list.size() > 0">
+                id in
+                <foreach collection="list" open="(" close=")" separator="," item="item">
+                    #{item}
+                </foreach>
+                order by field(
+                <foreach collection="list" open="id," separator="," close=")" item="item">
+                    #{item}
+                </foreach>
+            </when>
+            <otherwise>
+                false
+            </otherwise>
+        </choose>
     </select>
 </mapper>

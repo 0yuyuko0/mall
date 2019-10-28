@@ -1,0 +1,12 @@
+rocketmq:
+  producer:
+    group: order-search
+swagger:
+  title: SearchOrder
+  description: 搜索订单
+  exclude-path:
+    - /actuator/**
+    - /error
+  apply-default-response-messages: false
+  global-response-message:
+    get:

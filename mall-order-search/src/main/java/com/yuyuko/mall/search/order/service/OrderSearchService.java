@@ -1,29 +1,38 @@
 package com.yuyuko.mall.search.order.service;
 
-import com.yuyuko.mall.common.utils.ProtoStuffUtils;
+import com.yuyuko.idempotent.annotation.Idempotent;
+import com.yuyuko.mall.common.message.MessageCodec;
+import com.yuyuko.mall.order.message.OrderCancelMessage;
 import com.yuyuko.mall.order.message.OrderCreateMessage;
+import com.yuyuko.mall.order.message.OrderPayMessage;
+import com.yuyuko.mall.order.message.OrderStatus;
 import com.yuyuko.mall.search.order.dao.OrderRepository;
 import com.yuyuko.mall.search.order.entity.Order;
 import com.yuyuko.mall.search.order.param.OrderSearchParam;
 import org.apache.rocketmq.common.message.MessageExt;
 import org.apache.rocketmq.spring.annotation.RocketMQMessageListener;
 import org.apache.rocketmq.spring.core.RocketMQListener;
-import org.aspectj.weaver.ast.Or;
 import org.elasticsearch.action.search.SearchType;
+import org.elasticsearch.action.update.UpdateAction;
+import org.elasticsearch.action.update.UpdateRequest;
+import org.elasticsearch.action.update.UpdateRequestBuilder;
+import org.elasticsearch.client.ElasticsearchClient;
 import org.elasticsearch.index.query.BoolQueryBuilder;
 import org.elasticsearch.index.query.MultiMatchQueryBuilder;
 import org.elasticsearch.index.query.RangeQueryBuilder;
 import org.elasticsearch.search.sort.SortOrder;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.elasticsearch.core.ElasticsearchTemplate;
 import org.springframework.data.elasticsearch.core.query.NativeSearchQueryBuilder;
+import org.springframework.data.elasticsearch.core.query.UpdateQueryBuilder;
 import org.springframework.stereotype.Service;
 
 import java.time.format.DateTimeFormatter;
-import java.util.List;
-import java.util.stream.Collectors;
+import java.util.Map;
 
 import static org.elasticsearch.index.query.QueryBuilders.*;
 import static org.elasticsearch.search.sort.SortBuilders.fieldSort;
@@ -32,7 +41,10 @@ import static org.elasticsearch.search.sort.SortBuilders.fieldSort;
 public class OrderSearchService {
 
     @Autowired
-    OrderRepository orderRepository;
+    private OrderRepository orderRepository;
+
+    @Autowired
+    private ElasticsearchTemplate elasticsearchTemplate;
 
     @RocketMQMessageListener(
             consumerGroup = "search-order",
@@ -40,9 +52,13 @@ public class OrderSearchService {
             selectorExpression = "create")
     @Service
     public class OrderCreateMessageListener implements RocketMQListener<MessageExt> {
+        @Autowired
+        private MessageCodec messageCodec;
+
         @Override
+        @Idempotent(id = "#message.getKeys()")
         public void onMessage(MessageExt message) {
-            OrderCreateMessage orderCreateMessage = ProtoStuffUtils.deserialize(message.getBody(),
+            OrderCreateMessage orderCreateMessage = messageCodec.decode(message.getBody(),
                     OrderCreateMessage.class);
             createOrder(orderCreateMessage);
         }
@@ -53,6 +69,59 @@ public class OrderSearchService {
             if (!orderRepository.existsById(order.getId()))
                 orderRepository.save(order);
         }
+    }
+
+    @RocketMQMessageListener(
+            consumerGroup = "search-order",
+            topic = "order",
+            selectorExpression = "pay||cancel")
+    @Service
+    public class OrderStatusChangeMessageListener implements RocketMQListener<MessageExt> {
+        @Autowired
+        private MessageCodec messageCodec;
+
+        @Override
+        @Idempotent(id = "#message.getKeys()")
+        public void onMessage(MessageExt message) {
+            long orderId;
+            int status;
+            switch (message.getTags()) {
+                case "pay":
+                    OrderPayMessage payMessage = messageCodec.decode(message.getBody(),
+                            OrderPayMessage.class);
+                    orderId = payMessage.getId();
+                    status = OrderStatus.WAIT_SEND;
+                    break;
+                case "cancel":
+                    OrderCancelMessage cancelMessage = messageCodec.decode(message.getBody(),
+                            OrderCancelMessage.class);
+                    orderId = (cancelMessage.getId());
+                    status = OrderStatus.CANCELED;
+                    break;
+                default:
+                    return;
+            }
+            updateOrderStatus(orderId, status);
+        }
+    }
+
+    @Value("${elasticsearch.index}")
+    public String index;
+
+    @Value("${elasticsearch.type}")
+    public String type;
+
+
+    private void updateOrderStatus(long orderId, int status) {
+        elasticsearchTemplate.update(
+                new UpdateQueryBuilder()
+                        .withUpdateRequest(
+                                new UpdateRequest().doc(Map.of("status", status)))
+                        .withId(Long.toString(orderId))
+                        .withClass(Order.class)
+                        .build()
+        );
+
     }
 
     private int orderPageSize = 10;
@@ -76,14 +145,14 @@ public class OrderSearchService {
             queryBuilder.filter(termQuery("orderItems.id", orderSearchParam.getProductId()));
         if (orderSearchParam.getStatus() != null)
             queryBuilder.filter(termQuery("status", orderSearchParam.getStatus()));
-        if (orderSearchParam.getTimeCreate() != null) {
-            OrderSearchParam.TimeCreateRange timeCreateRange = orderSearchParam.getTimeCreate();
+        if (orderSearchParam.getTimeRange() != null) {
+            OrderSearchParam.TimeRange timeRange = orderSearchParam.getTimeRange();
             RangeQueryBuilder timeCreateRangeQuery = rangeQuery("timeCreate")
                     .format("yyyy-MM-dd'T'HH:mm:ss");
-            if (timeCreateRange.getFrom() != null)
-                timeCreateRangeQuery.from(timeCreateRange.getFrom().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME));
-            if (timeCreateRange.getTo() != null)
-                timeCreateRangeQuery.to(timeCreateRange.getTo().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME));
+            if (timeRange.getFrom() != null)
+                timeCreateRangeQuery.from(timeRange.getFrom().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME));
+            if (timeRange.getTo() != null)
+                timeCreateRangeQuery.to(timeRange.getTo().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME));
             queryBuilder.filter(timeCreateRangeQuery);
         }
 

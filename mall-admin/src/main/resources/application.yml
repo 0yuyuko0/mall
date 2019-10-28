@@ -1,0 +1,21 @@
+mybatis:
+  mapper-locations: classpath:com/yuyuko/mall/admin/dao/xml/*.xml
+  configuration:
+    map-underscore-to-camel-case: true
+swagger:
+  title: Admin
+  description: 用户登录、登出、注册等操作
+  exclude-path:
+    - /actuator/**
+    - /error
+  apply-default-response-messages: false
+  global-response-message:
+    get:
+rocketmq:
+  producer:
+    group: admin
+server:
+  servlet:
+    session:
+      cookie:
+        name:

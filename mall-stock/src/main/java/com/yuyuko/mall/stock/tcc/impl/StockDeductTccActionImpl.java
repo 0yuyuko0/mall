@@ -19,8 +19,10 @@ import org.apache.ibatis.executor.BatchResult;
 import org.apache.ibatis.session.ExecutorType;
 import org.apache.ibatis.session.SqlSession;
 import org.apache.ibatis.session.SqlSessionFactory;
+import org.springframework.aop.framework.AopContext;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import javax.validation.constraints.NotNull;
 import java.time.Duration;
@@ -32,15 +34,16 @@ import java.util.stream.Collectors;
 @Component
 public class StockDeductTccActionImpl implements StockDeductTccAction {
     @Autowired
-    StockDao stockDao;
+    private StockDao stockDao;
 
     @Autowired
-    StockManager stockManager;
+    private StockManager stockManager;
 
     @Autowired
-    SqlSessionFactory sqlSessionFactory;
+    private SqlSessionFactory sqlSessionFactory;
 
-    private void batchDeductStock(List<StockDeductParam> stockDeductParams) {
+    @Transactional
+    void batchDeductStock(List<StockDeductParam> stockDeductParams) {
         SqlSession sqlSession = sqlSessionFactory.openSession(ExecutorType.BATCH);
         for (StockDeductParam stockDeductParam : stockDeductParams)
             sqlSession.update("com.yuyuko.mall.stock.dao.StockDao.deductStock", stockDeductParam);
@@ -58,9 +61,8 @@ public class StockDeductTccActionImpl implements StockDeductTccAction {
     private boolean checkStockInDB(List<StockDeductParam> stockDeductParams) {
         List<Long> productIds =
                 stockDeductParams.stream().map(StockDeductParam::getProductId).collect(Collectors.toList());
-        return ! stockDao.listStocks(productIds).stream()
-                .anyMatch(stockDTO -> stockDTO.getStock() < 0);
-
+        return stockDao.listStocks(productIds).stream()
+                .noneMatch(stockDTO -> stockDTO.getStock() < 0);
     }
 
     @Override
@@ -71,7 +73,7 @@ public class StockDeductTccActionImpl implements StockDeductTccAction {
         //先从缓存查库存，可以过滤掉大量无效请求
         if (!checkStock(stockDeductParams))
             throw new StockNotEnoughException();
-        batchDeductStock(stockDeductParams);
+        ((StockDeductTccActionImpl) AopContext.currentProxy()).batchDeductStock(stockDeductParams);
         //扣完再查，超额则触发回滚
         if (!checkStockInDB(stockDeductParams))
             throw new StockDeductRollbackException();
@@ -84,7 +86,7 @@ public class StockDeductTccActionImpl implements StockDeductTccAction {
     }
 
     @Autowired
-    IdempotentApi idempotentApi;
+    private IdempotentApi idempotentApi;
 
     @Override
     public boolean rollback(BusinessActionContext actionContext) {
@@ -95,18 +97,18 @@ public class StockDeductTccActionImpl implements StockDeductTccAction {
             return true;
         List<StockDeductParam> stockDeductParams =
                 stockDeductParamsJsonArray.toJavaList(StockDeductParam.class);
+        //加回去
         stockDeductParams.forEach(stockDeductParam -> stockDeductParam.setCount(-1 * stockDeductParam.getCount()));
 
-
+        //幂等准备
         String uniqueId = ((Long) actionContext.getActionContext().get("id")).toString();
         IdempotentInfo idempotentInfo =
                 IdempotentInfo.IdempotentInfoBuilder.builder()
                         .id(uniqueId)
-                        .maxExecutionTime(((int) Duration.ofMinutes(5).toMillis()))
                         .build();
         idempotentApi.prepare(idempotentInfo);
         try {
-            batchDeductStock(stockDeductParams);
+            ((StockDeductTccActionImpl) AopContext.currentProxy()).batchDeductStock(stockDeductParams);
         } catch (Throwable throwable) {
             idempotentApi.afterThrowing(uniqueId);
         }

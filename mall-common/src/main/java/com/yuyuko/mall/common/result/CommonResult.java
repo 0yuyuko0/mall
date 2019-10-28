@@ -1,6 +1,6 @@
 package com.yuyuko.mall.common.result;
 
-public class CommonResult<T>{
+public class CommonResult {
     public static final int SUCCESS = 200;
 
     public static final int FAILED = 500;

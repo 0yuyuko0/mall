@@ -15,7 +15,7 @@ import org.springframework.data.elasticsearch.repository.config.EnableElasticsea
 import java.io.IOException;
 
 @Configuration
-@EnableElasticsearchRepositories("com.yuyuko.mall.search.dao")
+@EnableElasticsearchRepositories("com.yuyuko.mall.search.order.dao")
 public class ElasticsearchConfig {
     @Bean
     public ElasticsearchTemplate elasticsearchTemplate(Client client) {

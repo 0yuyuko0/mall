@@ -1,0 +1,12 @@
+rocketmq:
+  producer:
+    group: product-search
+swagger:
+  title: SearchProduct
+  description: 搜索商品
+  exclude-path:
+    - /actuator/**
+    - /error
+  apply-default-response-messages: false
+  global-response-message:
+    get:

@@ -1,5 +1,7 @@
 package com.yuyuko.mall.search.product.service;
 
+import com.yuyuko.idempotent.annotation.Idempotent;
+import com.yuyuko.mall.common.message.MessageCodec;
 import com.yuyuko.mall.common.utils.ProtoStuffUtils;
 import com.yuyuko.mall.product.message.ProductCreateMessage;
 import com.yuyuko.mall.search.product.dao.ProductRepository;
@@ -9,6 +11,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.rocketmq.common.message.MessageExt;
 import org.apache.rocketmq.spring.annotation.RocketMQMessageListener;
 import org.apache.rocketmq.spring.core.RocketMQListener;
+import org.elasticsearch.action.search.ClearScrollRequestBuilder;
 import org.elasticsearch.action.search.SearchType;
 import org.elasticsearch.common.lucene.search.function.FieldValueFactorFunction;
 import org.elasticsearch.index.query.BoolQueryBuilder;
@@ -20,6 +23,7 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.elasticsearch.core.ElasticsearchTemplate;
 import org.springframework.data.elasticsearch.core.query.NativeSearchQueryBuilder;
 import org.springframework.stereotype.Component;
@@ -32,6 +36,7 @@ import static org.elasticsearch.search.sort.SortBuilders.scoreSort;
 
 @Service
 public class ProductSearchService {
+
     @RocketMQMessageListener(
             consumerGroup = "search-product",
             topic = "product",
@@ -43,9 +48,13 @@ public class ProductSearchService {
         @Autowired
         ProductRepository productRepository;
 
+        @Autowired
+        private MessageCodec messageCodec;
+
         @Override
+        @Idempotent(id = "#message.getKeys()")
         public void onMessage(MessageExt message) {
-            ProductCreateMessage createMessage = ProtoStuffUtils.deserialize(message.getBody(),
+            ProductCreateMessage createMessage = messageCodec.decode(message.getBody(),
                     ProductCreateMessage.class);
             Product product = new Product();
             BeanUtils.copyProperties(createMessage, product);
@@ -98,7 +107,7 @@ public class ProductSearchService {
             case PRICE_HIGHER:
                 builder.withSort(fieldSort("price").order(SortOrder.DESC));
                 break;
-            default:
+            case GENERAL:
                 builder.withSort(scoreSort());
         }
 

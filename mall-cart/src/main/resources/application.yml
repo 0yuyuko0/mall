@@ -1,0 +1,14 @@
+
+mybatis:
+  mapper-locations: classpath:com/yuyuko/mall/cart/dao/xml/*.xml
+  configuration:
+    map-underscore-to-camel-case: true
+swagger:
+  title: Cart
+  description: 购物车
+  exclude-path:
+    - /actuator/**
+    - /error
+  apply-default-response-messages: false
+  global-response-message:
+    get:

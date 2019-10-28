@@ -4,7 +4,7 @@
 <mapper namespace="com.yuyuko.mall.stock.dao.StockDao">
     <insert id="insert">
         insert into stock (id, product_id, stock)
-        values (#{id},#{productId},#{stock});
+        values (#{id}, #{productId}, #{stock});
     </insert>
 
     <update id="deductStock">
@@ -25,5 +25,6 @@
         <foreach collection="list" item="item" separator="," open="(" close=")">
             #{item}
         </foreach>
+        order by field(product_id,1)
     </select>
 </mapper>
