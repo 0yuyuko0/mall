@@ -10,3 +10,5 @@ dubbo:
     check: false
   scan:
     base-packages: com.yuyuko.mall.seller.api.impl
+  cloud:
+    subscribed-services: shop

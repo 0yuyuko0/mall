@@ -47,7 +47,7 @@ public class OrderSearchService {
     private ElasticsearchTemplate elasticsearchTemplate;
 
     @RocketMQMessageListener(
-            consumerGroup = "search-order",
+            consumerGroup = "order-search",
             topic = "order",
             selectorExpression = "create")
     @Service
@@ -72,7 +72,7 @@ public class OrderSearchService {
     }
 
     @RocketMQMessageListener(
-            consumerGroup = "search-order",
+            consumerGroup = "order-search",
             topic = "order",
             selectorExpression = "pay||cancel")
     @Service
@@ -121,7 +121,6 @@ public class OrderSearchService {
                         .withClass(Order.class)
                         .build()
         );
-
     }
 
     private int orderPageSize = 10;
@@ -150,9 +149,9 @@ public class OrderSearchService {
             RangeQueryBuilder timeCreateRangeQuery = rangeQuery("timeCreate")
                     .format("yyyy-MM-dd'T'HH:mm:ss");
             if (timeRange.getFrom() != null)
-                timeCreateRangeQuery.from(timeRange.getFrom().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME));
+                timeCreateRangeQuery.from(timeRange.getFrom());
             if (timeRange.getTo() != null)
-                timeCreateRangeQuery.to(timeRange.getTo().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME));
+                timeCreateRangeQuery.to(timeRange.getTo());
             queryBuilder.filter(timeCreateRangeQuery);
         }
 

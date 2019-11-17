@@ -18,4 +18,5 @@ server:
   servlet:
     session:
       cookie:
-        name:
+        name: SESSION
+        http-only: true

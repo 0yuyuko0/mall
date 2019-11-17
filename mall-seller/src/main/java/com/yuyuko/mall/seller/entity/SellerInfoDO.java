@@ -19,11 +19,13 @@ import java.time.LocalDateTime;
 @EqualsAndHashCode(callSuper = false)
 @Accessors(chain = true)
 public class SellerInfoDO implements Serializable {
-
-
     private Long id;
 
     private Long userId;
+
+    private Long shopId;
+
+    private String shopName;
 
     private Integer waitPayCount;
 

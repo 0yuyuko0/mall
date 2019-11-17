@@ -2,14 +2,27 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.yuyuko.mall.cart.dao.CartDao">
-    <insert id="addCartItem">
+    <insert id="insertCartItem">
         insert into cart_item (id, user_id, product_id, shop_id, shop_name, count)
         values (#{id}, #{userId}, #{productId}, #{shopId}, #{shopName}, #{count});
     </insert>
-    <update id="updateCartItemCount">
+    <update id="addCartItemCount">
         update cart_item
         set count = count + #{count}
         where id = #{id}
+    </update>
+    <update id="updateCartItemCount">
+        update cart_item
+        set count = #{count}
+        where user_id = #{userId}
+          and id = #{id}
+    </update>
+    <update id="reduceCartItemByOne">
+        update cart_item
+        set count = count - 1
+        where user_id = #{userId}
+          and id = #{id}
+          and count > 0
     </update>
     <delete id="deleteCartItemById">
         delete
@@ -17,7 +30,7 @@
         where id = #{id}
     </delete>
     <select id="getCart" resultType="com.yuyuko.mall.cart.dto.CartItemDTO">
-        select id, product_id,shop_id, shop_name, count, time_create
+        select id, product_id, shop_id, shop_name, count, time_create
         from cart_item
         where user_id = #{userId}
         order by time_create desc

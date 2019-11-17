@@ -29,7 +29,7 @@ public class ProductCategoryController {
     @Autowired
     ProductCategoryService productCategoryService;
 
-    @GetMapping("get")
+    @GetMapping("list")
     @ApiOperation(value = "获取商品类目的子类目列表", notes = "根据父类目id获取其子类目list，如果要获取顶级类目List则传入-1")
     @ApiResponses({
             @ApiResponse(code = SUCCESS, message = "", response = ProductCategoryDTO.class,
@@ -41,7 +41,7 @@ public class ProductCategoryController {
         return CommonResult.success().data(productCategoryService.listChildCategories(parent));
     }
 
-    @GetMapping("brand/get")
+    @GetMapping("brand/list")
     @ApiOperation(value = "获取商品类目下的所有品牌", notes = "根据商品类目id获取该类目下的所有品牌，类目必须是类目树的叶子类目")
     @ApiResponses({
             @ApiResponse(code = SUCCESS, message = "", response = BrandDTO.class,

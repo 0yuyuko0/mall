@@ -3,6 +3,7 @@ package com.yuyuko.mall.order.param;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
+import lombok.experimental.Accessors;
 import org.hibernate.validator.constraints.Length;
 
 import javax.validation.Valid;
@@ -12,6 +13,7 @@ import java.util.List;
 
 @Data
 @ApiModel
+@Accessors(chain = true)
 public class OrderCreateParam {
     @Length(max = 16)
     @ApiModelProperty(value = "联系人名字",position = 1)

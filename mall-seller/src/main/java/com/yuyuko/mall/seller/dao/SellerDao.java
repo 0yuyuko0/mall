@@ -1,9 +1,9 @@
 package com.yuyuko.mall.seller.dao;
 
 import com.yuyuko.mall.seller.dto.SellerHomeInfoDTO;
-import com.yuyuko.mall.seller.dto.SellerShopSimpleInfoDTO;
+import com.yuyuko.mall.seller.dto.SellerShopInfoDTO;
+import com.yuyuko.mall.seller.entity.SellerInfoDO;
 import org.apache.ibatis.annotations.Mapper;
-import org.springframework.stereotype.Repository;
 
 /**
  * <p>
@@ -15,8 +15,10 @@ import org.springframework.stereotype.Repository;
  */
 @Mapper
 public interface SellerDao {
+    int insert(SellerInfoDO sellerInfoDO);
+
     SellerHomeInfoDTO getSellerHomeInfo(Long sellerId);
 
-    SellerShopSimpleInfoDTO getSellerShopInfo(Long sellerId);
+    SellerShopInfoDTO getSellerShopInfo(Long sellerId);
 
 }

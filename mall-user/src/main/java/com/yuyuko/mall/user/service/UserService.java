@@ -40,8 +40,6 @@ public class UserService {
     )
     @Service
     public class UserRegisterListener implements RocketMQListener<MessageExt> {
-        public UserRegisterListener() {
-        }
 
         @Autowired
         private MessageCodec messageCodec;

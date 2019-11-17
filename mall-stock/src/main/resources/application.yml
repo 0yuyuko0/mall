@@ -1,0 +1,5 @@
+
+mybatis:
+  mapper-locations: classpath:com/yuyuko/mall/stock/dao/xml/*.xml
+  configuration:
+    map-underscore-to-camel-case: true

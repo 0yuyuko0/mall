@@ -1,0 +1,11 @@
+com.yuyuko.mall.test.autoconfigure.elasticsearch.AutoConfigureElasticsearch=\
+org.springframework.boot.autoconfigure.data.elasticsearch.ElasticsearchAutoConfiguration,\
+org.springframework.boot.autoconfigure.data.elasticsearch.ElasticsearchDataAutoConfiguration,\
+org.springframework.boot.autoconfigure.data.elasticsearch.ElasticsearchRepositoriesAutoConfiguration
+
+com.yuyuko.mall.test.autoconfigure.rocketmq.AutoConfigureRocketMQ=\
+  org.apache.rocketmq.spring.autoconfigure.RocketMQAutoConfiguration
+
+com.yuyuko.mall.test.autoconfigure.dubbo.AutoConfigureDubbo=\
+  org.apache.dubbo.spring.boot.autoconfigure.DubboAutoConfiguration,\
+  org.apache.dubbo.spring.boot.autoconfigure.DubboRelaxedBinding2AutoConfiguration

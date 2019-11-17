@@ -1,0 +1,12 @@
+spring:
+  data:
+    elasticsearch:
+      clusterName: elasticsearch
+      clusterNodes: 127.0.0.1:9301
+elasticsearch:
+  index: product
+  type: _doc
+rocketmq:
+  name-server: 127.0.0.1:9876
+  producer:
+    group: product-search

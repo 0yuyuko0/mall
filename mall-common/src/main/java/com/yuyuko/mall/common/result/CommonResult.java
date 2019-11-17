@@ -9,26 +9,31 @@ public class CommonResult {
 
     public static final int UNAUTHORIZED = 401;
 
+    public static final int NOT_SELLER = 402;
+
     public static final int ACCESS_DENIED = 403;
 
     public static <T> Result<T> success() {
-        return new Result<>(SUCCESS,"成功");
+        return new Result<>(SUCCESS, "成功");
     }
 
     public static <T> Result<T> failed() {
-        return new Result<>(FAILED,"失败");
+        return new Result<>(FAILED, "失败");
     }
 
     public static <T> Result<T> dataBindingFailed() {
-        return new Result<>(DATA_BINDING_FAILED,"数据绑定失败");
+        return new Result<>(DATA_BINDING_FAILED, "数据绑定失败");
     }
 
     public static <T> Result<T> unauthorized() {
-        return new Result<>(UNAUTHORIZED,"用户未认证");
+        return new Result<>(UNAUTHORIZED, "用户未认证");
     }
 
     public static <T> Result<T> accessDenied() {
-        return new Result<>(ACCESS_DENIED,"没有权限访问");
+        return new Result<>(ACCESS_DENIED, "没有权限访问");
     }
 
+    public static <T> Result<T> notSeller() {
+        return new Result<>(NOT_SELLER, "用户不是卖家");
+    }
 }

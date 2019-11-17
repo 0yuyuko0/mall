@@ -1,0 +1,90 @@
+spring:
+  cloud:
+    gateway:
+      discovery:
+        locator:
+          lower-case-service-id: true
+      routes:
+        - id: adminAuthRoute
+          uri: lb://admin
+          predicates:
+            - Path=/admin/logout
+          filters:
+            - Authentication
+            - StripPrefix=1
+        - id: adminRoute
+          uri: lb://admin
+          predicates:
+            - Path=/admin/**
+          filters:
+            - StripPrefix=1
+        - id: userRoute
+          uri: lb://user
+          predicates:
+            - Path=/user/**
+          filters:
+            - Authentication
+            - StripPrefix=1
+        - id: productRoute
+          uri: lb://product
+          predicates:
+            - Path=/product/**
+          filters:
+            - StripPrefix=1
+        - id: searchRoute
+          uri: lb://product-search
+          predicates:
+            - Path=/search
+          filters:
+            - StripPrefix=1
+        - id: sellerProductAuthRoute
+          uri: lb://seller-product
+          predicates:
+            - Path=/seller/product/**
+          filters:
+            - Authentication
+            - Seller
+            - StripPrefix=2
+        - id: sellerRegisterRoute
+          uri: lb://seller
+          predicates:
+            - Path=/seller/register
+          filters:
+            - Authentication
+            - StripPrefix=1
+        - id: sellerAuthRoute
+          uri: lb://seller
+          predicates:
+            - Path=/seller/**
+          filters:
+            - Authentication
+            - Seller
+            - StripPrefix=1
+        - id: shopRoute
+          uri: lb://shop
+          predicates:
+            - Path=/shop/**
+          filters:
+            - StripPrefix=1
+        - id: cartAuthRoute
+          uri: lb://cart
+          predicates:
+            - Path=/cart/**
+          filters:
+            - Authentication
+            - StripPrefix=1
+        - id: orderSearchAuthRoute
+          uri: lb://order-search
+          predicates:
+            - Path=/order/search
+          filters:
+            - Authentication
+            - StripPrefix=2
+        - id: orderAuthRoute
+          uri: lb://order
+          predicates:
+            - Path=/order/**
+          filters:
+            - Authentication
+            - StripPrefix=1
+

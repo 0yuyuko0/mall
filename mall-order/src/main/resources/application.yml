@@ -1,4 +1,3 @@
-
 mybatis:
   mapper-locations: classpath:com/yuyuko/mall/order/dao/xml/*.xml
   configuration:

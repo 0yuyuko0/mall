@@ -5,12 +5,18 @@ import io.swagger.annotations.ApiModelProperty;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.experimental.Accessors;
 
 @Data
 @ApiModel(description = "用户会话信息")
 @AllArgsConstructor
 @NoArgsConstructor
+@Accessors(chain = true)
 public class UserSessionInfo {
+    public UserSessionInfo(Long id) {
+        this.id = id;
+    }
+
     @ApiModelProperty(value = "用户id",position = 1)
     private Long id;
 

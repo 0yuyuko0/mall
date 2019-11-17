@@ -18,4 +18,6 @@ public interface StockDao {
     int insert(StockDO stockDO);
 
     int deductStock(StockDeductParam deductParam);
+
+    int deleteByProductId(Long id);
 }

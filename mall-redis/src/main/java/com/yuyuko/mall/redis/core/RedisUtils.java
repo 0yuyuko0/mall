@@ -1,5 +1,6 @@
 package com.yuyuko.mall.redis.core;
 
+import com.yuyuko.mall.redis.codec.RedisCodec;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.dao.DataAccessException;
 import org.springframework.data.redis.connection.RedisConnection;
@@ -16,6 +17,8 @@ import java.util.function.BiFunction;
 
 public class RedisUtils implements InitializingBean {
     private RedisTemplate<String, byte[]> redisTemplate;
+
+    private RedisCodec redisCodec;
 
     private ValueOperations valueOperations;
 
@@ -45,12 +48,17 @@ public class RedisUtils implements InitializingBean {
         return redisTemplate.executePipelined(redisCallback);
     }
 
+    public RedisUtils(RedisTemplate<String, byte[]> redisTemplate, RedisCodec redisCodec) {
+        this.redisTemplate = redisTemplate;
+        this.redisCodec = redisCodec;
+    }
+
     public RedisTemplate<String, byte[]> getRedisTemplate() {
         return redisTemplate;
     }
 
-    public RedisUtils(RedisTemplate<String, byte[]> redisTemplate) {
-        this.redisTemplate = redisTemplate;
+    public RedisCodec getRedisCodec() {
+        return redisCodec;
     }
 
     @Override

@@ -23,11 +23,9 @@ public interface OrderDao {
 
     OrderDTO getOrder(Long id);
 
-    int createOrders(List<OrderDO> orderDOs);
+    boolean exist(Long id);
 
-    Optional<Boolean> exist(Long id);
-
-    Optional<Boolean> checkOrderStatus(@Param("id") long id, @Param("status") int status);
+    boolean checkOrderStatus(@Param("id") long id, @Param("status") int status);
 
     int updateOrderStatus(@Param("id") long id, @Param("status") Integer status);
 }

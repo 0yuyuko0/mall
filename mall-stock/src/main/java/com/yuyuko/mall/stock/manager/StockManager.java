@@ -1,6 +1,6 @@
 package com.yuyuko.mall.stock.manager;
 
-import com.yuyuko.mall.common.utils.CollectionUtils;
+import com.yuyuko.mall.common.utils.CacheUtils;
 import com.yuyuko.mall.redis.core.RedisExpires;
 import com.yuyuko.mall.redis.core.RedisUtils;
 import com.yuyuko.mall.stock.dao.StockDao;
@@ -9,20 +9,19 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Component
 public class StockManager {
     @Autowired
-    StockDao stockDao;
+    private StockDao stockDao;
 
     @Autowired
-    RedisUtils redisUtils;
+    private RedisUtils redisUtils;
 
     @Autowired
-    RedisExpires redisExpires;
+    private RedisExpires redisExpires;
 
     public Integer getStock(Long productId) {
         String redisKey = getStockRedisKey(productId);
@@ -30,7 +29,7 @@ public class StockManager {
         if (cache != null)
             return cache;
         Integer stock = stockDao.getStock(productId);
-        return redisUtils.opsForValue().setAndGet(redisKey, stock, redisExpires);
+        return redisUtils.opsForValue().getSet(redisKey, stock, redisExpires);
     }
 
     private String getStockRedisKey(Long productId) {
@@ -41,23 +40,17 @@ public class StockManager {
         List<String> redisKeys =
                 productIds.stream().map(this::getStockRedisKey).collect(Collectors.toList());
         List<Integer> cache = redisUtils.opsForValue().multiGet(redisKeys, Integer.class);
-        CollectionUtils.findAndExecBatchAndReplace(
+        return CacheUtils.handleBatchCache(
                 cache,
                 productIds,
-                Objects::isNull,
                 stockDao::listStocks,
-                (stockDTOs, missProductIds) -> {
-                    Map<Long, Integer> m =
-                            CollectionUtils.convertListToMap(stockDTOs, "productId", "stock");
-                    return missProductIds.stream().map(m::get).collect(Collectors.toList());
-                },
+                stockDTOs -> stockDTOs.stream().map(StockDTO::getStock).collect(Collectors.toList()),
                 (missProductIds, stocks) -> {
                     List<String> missProductRedisKeys =
                             missProductIds.stream().map(this::getStockRedisKey).collect(Collectors.toList());
                     redisUtils.opsForValue().multiSetIfAbsent(missProductRedisKeys, stocks,
-                            Integer.class, redisExpires);
+                            redisExpires);
                 }
         );
-        return cache;
     }
 }

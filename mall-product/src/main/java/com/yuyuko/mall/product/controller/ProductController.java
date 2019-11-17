@@ -2,6 +2,7 @@ package com.yuyuko.mall.product.controller;
 
 
 import com.yuyuko.mall.common.result.CommonResult;
+import com.yuyuko.mall.common.result.Result;
 import com.yuyuko.mall.product.bo.ProductBO;
 import com.yuyuko.mall.product.service.ProductService;
 import io.swagger.annotations.*;
@@ -33,7 +34,7 @@ public class ProductController {
     @ApiResponses({
             @ApiResponse(code = SUCCESS, message = "", response = ProductBO.class)
     })
-    public Object getProduct(
+    public Result<?> getProduct(
             @ApiParam(name = "productId", required = true)
             @RequestParam("productId") Long productId) {
         return CommonResult.success().data(productService.getProduct(productId));

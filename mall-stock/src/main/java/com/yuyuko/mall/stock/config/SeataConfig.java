@@ -26,8 +26,10 @@ public class SeataConfig {
     public GlobalTransactionScanner globalTransactionScanner(
             @Value("${spring.application.name}")
                     String applicationName) {
-        return new GlobalTransactionScanner(
+        GlobalTransactionScanner scanner = new GlobalTransactionScanner(
                 applicationName,
                 "stock-service-group");
+        scanner.setExposeProxy(true);
+        return scanner;
     }
 }

@@ -4,14 +4,16 @@ import com.yuyuko.mall.stock.exception.StockNotEnoughException;
 import com.yuyuko.mall.stock.param.StockCreateParam;
 import com.yuyuko.mall.stock.param.StockDeductParam;
 
+import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.NotNull;
 import java.util.List;
 
 public interface StockRemotingService {
-    void deductStock(List<StockDeductParam> stockDeductParams) throws StockNotEnoughException;
+    void deductStock(@NotEmpty List<StockDeductParam> stockDeductParams) throws StockNotEnoughException;
 
-    List<Integer> listStocks(List<Long> productIds);
+    List<Integer> listStocks(@NotEmpty List<Long> productIds);
 
-    Integer getStock(Long productId);
+    Integer getStock(@NotNull Long productId);
 
-    void createProductStock(StockCreateParam createParam);
+    void createProductStock(@NotNull StockCreateParam createParam);
 }

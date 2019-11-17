@@ -3,6 +3,7 @@ package com.yuyuko.mall.order.param;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
+import lombok.experimental.Accessors;
 import org.hibernate.validator.constraints.Length;
 
 import javax.validation.Valid;
@@ -15,6 +16,7 @@ import java.util.List;
 
 @Data
 @ApiModel
+@Accessors(chain = true)
 public class ShopOrderCreateParam {
     @NotNull
     @ApiModelProperty(position = 1)

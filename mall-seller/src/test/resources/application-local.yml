@@ -1,0 +1,20 @@
+spring:
+  datasource:
+    driverClassName: com.mysql.cj.jdbc.Driver
+    username: root
+    password: 189274abcd
+    url: jdbc:mysql://127.0.0.1:3306/mall_seller?useSSL=false&allowPublicKeyRetrieval=true&rewriteBatchedStatements=true&serverTimezone=Asia/Shanghai
+    type: org.apache.commons.dbcp2.BasicDataSource
+dubbo:
+  registry:
+    check: false
+    subscribe: false
+    address: dubbo://127.0.0.1:20880
+    register: false
+  consumer:
+    check: false
+    scope: local
+  scan:
+    base-packages: com.yuyuko.mall.seller.api.impl
+  application:
+    name: seller

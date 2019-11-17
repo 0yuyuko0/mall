@@ -1,6 +1,7 @@
 package com.yuyuko.mall.order.message;
 
 import lombok.Data;
+import lombok.experimental.Accessors;
 import org.hibernate.validator.constraints.Length;
 import org.hibernate.validator.constraints.Range;
 
@@ -11,6 +12,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 @Data
+@Accessors(chain = true)
 public class OrderCreateMessage {
     @NotNull
     private Long id;

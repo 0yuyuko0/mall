@@ -19,13 +19,13 @@ import java.time.LocalDateTime;
 @EqualsAndHashCode(callSuper = false)
 @Accessors(chain = true)
 public class ShopDO implements Serializable {
-
-
     private Long id;
 
     private String name;
 
     private String description;
+
+    private String avatar;
 
     private String location;
 

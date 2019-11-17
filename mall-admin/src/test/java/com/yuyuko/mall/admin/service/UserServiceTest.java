@@ -66,104 +66,22 @@ class UserServiceTest {
     @Test
     void login() throws IncorrectUsernameOrPasswordException,
             UsernameNotExistsException {
+        //Not Found
         when(userDao.getUserByUsername("test1")).thenReturn(null);
         assertThrows(UsernameNotExistsException.class, () -> userService.login(new LoginParam(
                 "test1", "123456")));
 
+        //wrong password
         when(userDao.getUserByUsername("test2")).thenReturn(new UserDTO(1L, "test2", "1234567"));
         assertThrows(IncorrectUsernameOrPasswordException.class,
                 () -> userService.login(new LoginParam(
                         "test2", "123456")));
 
+        //success
         when(remotingService.getUserPersonalInfo(anyLong()))
                 .thenReturn(new UserPersonalInfoDTO(1L, "123", "456", "789", true));
         when(userDao.getUserByUsername("test3")).thenReturn(new UserDTO(1L, "test3", "1234"));
         assertEquals(new UserSessionInfo(1L, "123", "456", "789", true),
                 userService.login(new LoginParam("test3", "1234")));
-    }
-
-
-    @Test
-    void register() {
-        TransactionSendResult res1 = new TransactionSendResult();
-        res1.setLocalTransactionState(LocalTransactionState.ROLLBACK_MESSAGE);
-
-        when(rocketMQTemplate.sendMessageInTransaction(anyString(), anyString(), any(), any()))
-                .thenAnswer(invocation -> {
-                    Message m = (Message) invocation.getArgument(2);
-                    UserRegisterMessage registerMessage =
-                            messageCodec.decode(((byte[]) m.getPayload()),
-                                    UserRegisterMessage.class);
-                    assertEquals("yuyuko", registerMessage.getUsername());
-                    assertTrue(registerMessage.getUserId() > 0);
-                    return res1;
-                });
-
-
-        LoginParam param = new LoginParam("yuyuko", "1234");
-        assertThrows(UsernameAlreadyExistException.class,
-                () -> userService.register(param));
-
-
-        res1.setLocalTransactionState(LocalTransactionState.COMMIT_MESSAGE);
-
-        assertDoesNotThrow(() -> userService.register(param));
-    }
-
-    @Nested
-    class RegisterTransactionListenerTest {
-        UserService.UserRegisterTransactionListener transactionListener;
-
-        @BeforeEach
-        void setUp() {
-            transactionListener = userService.new UserRegisterTransactionListener();
-        }
-
-        @Test
-        void executeTx() {
-            when(userDao.insert(any())).thenReturn(1);
-            RocketMQLocalTransactionState state =
-                    transactionListener.executeLocalTransaction(
-                            MessageBuilder.withPayload(messageCodec.encode(new UserRegisterMessage(1L,
-                                    "test1"))).build(),
-                            new LoginParam("test1", "123456")
-                    );
-            assertEquals(COMMIT, state);
-
-
-            when(userDao.insert(any())).thenThrow(DataIntegrityViolationException.class);
-            state =
-                    transactionListener.executeLocalTransaction(
-                            MessageBuilder.withPayload(messageCodec.encode(new UserRegisterMessage(1L,
-                                    "test1"))).build(), new LoginParam("test1", "123456")
-                    );
-            assertEquals(ROLLBACK, state);
-
-            reset(userDao);
-            when(userDao.insert(any())).thenThrow(RuntimeException.class);
-            state =
-                    transactionListener.executeLocalTransaction(
-                            MessageBuilder.withPayload(messageCodec.encode(new UserRegisterMessage(1L,
-                                    "test1"))).build(), new LoginParam("test1", "123456")
-                    );
-            assertEquals(UNKNOWN, state);
-        }
-
-        @Test
-        void checkTx() {
-            Message<byte[]> message =
-                    MessageBuilder.withPayload(messageCodec.encode(new UserRegisterMessage(1L,
-                            "test1"))).build();
-
-            when(userDao.existById(anyLong())).thenReturn(Optional.of(false));
-            assertEquals(ROLLBACK,
-                    transactionListener.checkLocalTransaction(
-                            message));
-
-            when(userDao.existById(anyLong())).thenReturn(Optional.of(true));
-            assertEquals(COMMIT,
-                    transactionListener.checkLocalTransaction(
-                            message));
-        }
     }
 }

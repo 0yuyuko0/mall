@@ -14,7 +14,7 @@ import org.springframework.data.elasticsearch.repository.config.EnableElasticsea
 
 import java.io.IOException;
 
-@Configuration
+@Configuration("elasticsearchConfig")
 @EnableElasticsearchRepositories("com.yuyuko.mall.search.product.dao")
 public class ElasticsearchConfig {
     @Bean
@@ -49,6 +49,5 @@ public class ElasticsearchConfig {
         public <T> T mapToObject(String source, Class<T> clazz) throws IOException {
             return mapper.readValue(source, clazz);
         }
-
     }
 }

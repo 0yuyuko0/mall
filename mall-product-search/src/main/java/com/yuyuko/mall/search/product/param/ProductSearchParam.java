@@ -4,15 +4,22 @@ import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import io.swagger.annotations.Extension;
 import io.swagger.annotations.ExtensionProperty;
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
+import lombok.experimental.Accessors;
 import org.hibernate.validator.constraints.Length;
 import org.hibernate.validator.constraints.Range;
 
+import javax.validation.constraints.NotEmpty;
+
 @Data
 @ApiModel
+@Accessors(chain = true)
 public class ProductSearchParam {
     @ApiModelProperty(value = "搜索关键字", required = true, position = 1)
     @Length(max = 36)
+    @NotEmpty
     private String keyword;
 
     @ApiModelProperty(value =
@@ -35,6 +42,8 @@ public class ProductSearchParam {
     private int page = 0;
 
     @Data
+    @AllArgsConstructor
+    @NoArgsConstructor
     public static class PriceRange {
         @ApiModelProperty(value = "价格左区间", position = 1)
         private Integer from;

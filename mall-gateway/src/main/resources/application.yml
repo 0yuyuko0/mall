@@ -1,0 +1,5 @@
+session:
+  userInfo:
+    name: userSessionInfo
+  cookie:
+    name: SESSION

@@ -7,6 +7,7 @@ import com.yuyuko.mall.common.message.MessageCodec;
 import com.yuyuko.mall.common.message.ProtostuffMessageCodec;
 import com.yuyuko.mall.user.dao.UserHomeInfoDao;
 import com.yuyuko.mall.user.dao.UserPersonalInfoDao;
+import com.yuyuko.mall.user.dto.UserHomeInfoDTO;
 import org.apache.rocketmq.common.message.MessageExt;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
@@ -39,7 +40,8 @@ class UserServiceTest {
 
     @Test
     void getUserHomeInfo() {
-        userService.getUserHomeInfo(1L);
+        when(userHomeInfoDao.getUserHomeInfo(anyLong())).thenReturn(new UserHomeInfoDTO());
+        assertNotNull( userService.getUserHomeInfo(1L));
     }
 
     @Nested
@@ -74,7 +76,6 @@ class UserServiceTest {
 
             when(userPersonalInfoDao.insert(any())).thenThrow(DataIntegrityViolationException.class);
             userRegisterListener.onMessage(messageExt);
-
         }
     }
 }

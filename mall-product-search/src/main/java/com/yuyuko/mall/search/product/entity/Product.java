@@ -14,7 +14,8 @@ import java.time.LocalDateTime;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-@Document(indexName = "#{elasticsearchConfig.index}", type = "#{elasticsearchConfig.type}")
+@Document(indexName = "#{elasticsearchConfig.index}",
+        type = "#{elasticsearchConfig.type}")
 @ApiModel
 public class Product {
     @Id

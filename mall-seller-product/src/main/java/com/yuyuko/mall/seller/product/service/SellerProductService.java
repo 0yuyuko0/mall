@@ -5,9 +5,10 @@ import com.yuyuko.mall.common.message.MessageCodec;
 import com.yuyuko.mall.product.api.ProductRemotingService;
 import com.yuyuko.mall.product.message.ProductCreateMessage;
 import com.yuyuko.mall.product.param.ProductCreateParam;
-import com.yuyuko.mall.seller.api.SellerInfoRemotingService;
-import com.yuyuko.mall.seller.dto.SellerShopSimpleInfoDTO;
+import com.yuyuko.mall.seller.api.SellerRemotingService;
+import com.yuyuko.mall.seller.dto.SellerShopInfoDTO;
 import com.yuyuko.mall.seller.product.param.ProductPublishParam;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.dubbo.config.annotation.Reference;
 import org.apache.rocketmq.spring.annotation.RocketMQTransactionListener;
 import org.apache.rocketmq.spring.core.RocketMQLocalTransactionListener;
@@ -18,6 +19,7 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.support.MessageBuilder;
+import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -31,12 +33,13 @@ import java.time.LocalDateTime;
  * @since 2019-08-09
  */
 @Service
+@Slf4j
 public class SellerProductService {
     @Reference
     private ProductRemotingService productRemotingService;
 
     @Reference
-    private SellerInfoRemotingService sellerInfoRemotingService;
+    private SellerRemotingService sellerRemotingService;
 
     @Autowired
     private RocketMQTemplate rocketMQTemplate;
@@ -49,25 +52,27 @@ public class SellerProductService {
 
 
     public void publishProduct(Long sellerId, ProductPublishParam publishParam) {
-        SellerShopSimpleInfoDTO shopSimpleInfoDTO =
-                sellerInfoRemotingService.getSellerShopInfo(sellerId);
+        SellerShopInfoDTO shopInfo =
+                sellerRemotingService.getSellerShopInfo(sellerId);
 
         ProductCreateParam createParam = buildProductCreateParam(sellerId,
-                shopSimpleInfoDTO.getShopId(), publishParam);
+                shopInfo.getShopId(), publishParam);
 
 
         rocketMQTemplate.sendMessageInTransaction("tx-product", "product:create",
                 MessageBuilder.withPayload(
                         messageCodec.encode(
-                                buildProductCreateMessage(publishParam, shopSimpleInfoDTO,
+                                buildProductCreateMessage(publishParam, shopInfo,
                                         createParam.getId()))
                 ).setHeader(RocketMQHeaders.KEYS, idGenerator.nextId())
                         .build(),
                 createParam);
+        log.info("卖家{}发布商品成功[{}]", sellerId, createParam);
     }
 
     @RocketMQTransactionListener(txProducerGroup = "tx-product")
-    private class ProductCreateListener implements RocketMQLocalTransactionListener {
+    @Component
+    public class ProductCreateListener implements RocketMQLocalTransactionListener {
         @Override
         public RocketMQLocalTransactionState executeLocalTransaction(Message msg, Object arg) {
             ProductCreateParam createParam = (ProductCreateParam) arg;
@@ -81,10 +86,12 @@ public class SellerProductService {
 
         @Override
         public RocketMQLocalTransactionState checkLocalTransaction(Message msg) {
-            ProductCreateParam createParam =
+            if (msg == null)
+                return RocketMQLocalTransactionState.ROLLBACK;
+            ProductCreateMessage createMessage =
                     messageCodec.decode((byte[]) msg.getPayload(),
-                            ProductCreateParam.class);
-            if (productRemotingService.exist(createParam.getId()))
+                            ProductCreateMessage.class);
+            if (productRemotingService.exist(createMessage.getId()))
                 return RocketMQLocalTransactionState.COMMIT;
             else
                 return RocketMQLocalTransactionState.ROLLBACK;
@@ -103,7 +110,7 @@ public class SellerProductService {
     }
 
     private ProductCreateMessage buildProductCreateMessage(ProductPublishParam publishParam,
-                                                           SellerShopSimpleInfoDTO sellerShopSimpleInfo,
+                                                           SellerShopInfoDTO sellerShopSimpleInfo,
                                                            Long productId) {
         ProductCreateMessage message = new ProductCreateMessage();
         BeanUtils.copyProperties(publishParam, message);

@@ -10,7 +10,7 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 @SpringBootApplication
 @EnableSwagger2Doc
 @EnableTransactionManagement
-@EnableAspectJAutoProxy(exposeProxy = true)
+@EnableAspectJAutoProxy(exposeProxy = true,proxyTargetClass = true)
 public class OrderApplication {
 
     public static void main(String[] args) {

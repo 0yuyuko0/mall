@@ -36,27 +36,27 @@
         <module>mall-redis</module>
         <module>mall-seller-api</module>
         <module>mall-admin-message</module>
-        <module>mall-admin-message</module>
         <module>mall-product-message</module>
         <module>mall-order-message</module>
         <module>mall-stock-api</module>
         <module>mall-session</module>
-        <module>mall-session</module>
+        <module>mall-test</module>
     </modules>
 
     <properties>
-        <mall-product-message.version>0.0.1.SNAPSHOT</mall-product-message.version>
-        <mall-admin-message.version>0.0.1.SNAPSHOT</mall-admin-message.version>
-        <mall-user-api.version>0.0.1.SNAPSHOT</mall-user-api.version>
-        <mall-order-message.version>0.0.1.SNAPSHOT</mall-order-message.version>
+        <mall-product-message.version>0.0.1-SNAPSHOT</mall-product-message.version>
+        <mall-admin-message.version>0.0.1-SNAPSHOT</mall-admin-message.version>
+        <mall-user-api.version>0.0.1-SNAPSHOT</mall-user-api.version>
+        <mall-order-message.version>0.0.1-SNAPSHOT</mall-order-message.version>
         <mall-seller-api.version>0.0.2-SNAPSHOT</mall-seller-api.version>
         <mall-shop-api.version>0.0.1-SNAPSHOT</mall-shop-api.version>
+        <mall-test.version>0.0.1-SNAPSHOT</mall-test.version>
         <mall-product-api.version>0.0.2-SNAPSHOT</mall-product-api.version>
         <mall-session.version>0.0.1-SNAPSHOT</mall-session.version>
         <mall-stock-api.version>0.0.1-SNAPSHOT</mall-stock-api.version>
         <mall-redis.version>0.0.1-1-SNAPSHOT</mall-redis.version>
         <mall-common.version>0.0.1-4-SNAPSHOT</mall-common.version>
-        <idempotent.version>0.0.3.SNAPSHOT</idempotent.version>
+        <idempotent.version>0.0.1</idempotent.version>
         <java.version>11</java.version>
         <spring-boot.version>2.1.6.RELEASE</spring-boot.version>
         <spring-cloud-alibaba.version>0.9.0.RELEASE</spring-cloud-alibaba.version>

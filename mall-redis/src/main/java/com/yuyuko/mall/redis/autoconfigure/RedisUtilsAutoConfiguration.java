@@ -1,5 +1,7 @@
 package com.yuyuko.mall.redis.autoconfigure;
 
+import com.yuyuko.mall.redis.codec.ProtoStuffCodec;
+import com.yuyuko.mall.redis.codec.RedisCodec;
 import com.yuyuko.mall.redis.core.RedisUtils;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.AutoConfigureBefore;
@@ -17,7 +19,6 @@ import org.springframework.data.redis.serializer.SerializationException;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
 
 @Configuration
-@ConditionalOnWebApplication(type = ConditionalOnWebApplication.Type.SERVLET)
 @AutoConfigureAfter(RedisAutoConfiguration.class)
 public class RedisUtilsAutoConfiguration {
     @Bean
@@ -49,7 +50,12 @@ public class RedisUtilsAutoConfiguration {
     }
 
     @Bean
+    public RedisCodec redisCodec() {
+        return new ProtoStuffCodec();
+    }
+
+    @Bean
     public RedisUtils redisUtils(RedisTemplate<String, byte[]> redisTemplate) {
-        return new RedisUtils(redisTemplate);
+        return new RedisUtils(redisTemplate, redisCodec());
     }
 }

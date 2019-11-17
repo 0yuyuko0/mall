@@ -5,6 +5,7 @@ import com.yuyuko.mall.cart.bo.ShopCartItemBO;
 import com.yuyuko.mall.cart.dao.CartDao;
 import com.yuyuko.mall.cart.dto.CartItemDTO;
 import com.yuyuko.mall.cart.entity.CartItemDO;
+import com.yuyuko.mall.cart.param.CartAddParam;
 import com.yuyuko.mall.cart.param.CartUpdateParam;
 import com.yuyuko.mall.common.idgenerator.IdGenerator;
 import com.yuyuko.mall.common.utils.CollectionUtils;
@@ -24,13 +25,13 @@ import java.util.stream.Collectors;
 @Service
 public class CartService {
     @Autowired
-    CartDao cartDao;
+    private CartDao cartDao;
 
     @Reference
     private ProductRemotingService productRemotingService;
 
     @Autowired
-    IdGenerator idGenerator;
+    private IdGenerator idGenerator;
 
     public List<ShopCartItemBO> getCart(Long userId) {
         List<CartItemDTO> cartItems = cartDao.getCart(userId);
@@ -38,7 +39,7 @@ public class CartService {
         return buildCart(cartItems);
     }
 
-    public List<ShopCartItemBO> buildCart(List<CartItemDTO> cartItems) {
+    private List<ShopCartItemBO> buildCart(List<CartItemDTO> cartItems) {
         List<Long> productIds =
                 cartItems.stream().map(CartItemDTO::getProductId).collect(Collectors.toList());
 
@@ -46,7 +47,7 @@ public class CartService {
                 productRemotingService.listCartItemProducts(productIds);
 
         Map<Long, CartItemProductDTO> cartItemProductMap =
-                CollectionUtils.convertListToMap(cartItemProducts,
+                CollectionUtils.transListToMap(cartItemProducts,
                         "id", CartItemProductDTO.class);
 
         List<ShopCartItemBO> shopCartItemBOList = new ArrayList<>();
@@ -74,19 +75,6 @@ public class CartService {
         return shopCartItemBOList;
     }
 
-
-    public void updateCartItem(Long userId, CartUpdateParam param) {
-        CartItemDTO cartItem = cartDao.getCartItem(userId, param.getProductId());
-        if (cartItem == null) {
-            cartDao.addCartItem(buildCartItemDO(param, userId));
-        } else {
-            if (param.getCount() + cartItem.getCount() == 0) {
-                cartDao.deleteCartItemById(cartItem.getId());
-            } else if (param.getCount() > 0)
-                cartDao.updateCartItemCount(cartItem.getId(), cartItem.getCount());
-        }
-    }
-
     private CartItemBO buildCartItemBO(CartItemDTO cartItem, CartItemProductDTO cartItemProduct) {
         CartItemBO cartItemBO = new CartItemBO();
         BeanUtils.copyProperties(cartItem, cartItemBO);
@@ -101,7 +89,7 @@ public class CartService {
                 .setCartItems(new ArrayList<>());
     }
 
-    private CartItemDO buildCartItemDO(CartUpdateParam addParam, Long userId) {
+    private CartItemDO buildCartItemDO(CartAddParam addParam, Long userId) {
         CartItemDO cartItemDO = new CartItemDO();
         BeanUtils.copyProperties(addParam, cartItemDO);
         cartItemDO.setId(idGenerator.nextId());
@@ -112,5 +100,24 @@ public class CartService {
 
     public void deleteCartItem(Long cartItemId) {
         cartDao.deleteCartItemById(cartItemId);
+    }
+
+    public void addCartItem(Long userId, CartAddParam param) {
+        CartItemDTO cartItem = cartDao.getCartItem(userId, param.getProductId());
+        if (cartItem == null) {
+            if (param.getShopId() == null || param.getShopName() == null)
+                throw new RuntimeException("添加到购物车时请带上店铺id与店铺名");
+            cartDao.insertCartItem(buildCartItemDO(param, userId));
+        } else
+            cartDao.addCartItemCount(cartItem.getId(), param.getCount());
+    }
+
+    public void reduceCartItem(long userId, long id) {
+        cartDao.reduceCartItemByOne(userId, id);
+    }
+
+    public void updateCartItem(long userId, CartUpdateParam cartUpdateParam) {
+        cartDao.updateCartItemCount(userId, cartUpdateParam.getId(),
+                cartUpdateParam.getCount());
     }
 }

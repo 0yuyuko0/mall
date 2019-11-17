@@ -1,19 +1,13 @@
 package com.yuyuko.mall.redis.core;
 
-import com.yuyuko.mall.redis.protostuff.ProtoStuffUtils;
 import org.joor.Reflect;
-import org.springframework.data.redis.connection.ReactiveClusterZSetCommands;
-import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
-import java.lang.reflect.Constructor;
-import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
 import java.util.*;
 
 public class HashOperations {
     private org.springframework.data.redis.core.HashOperations<String, String, byte[]> hashOperations;
+
     private RedisUtils redisUtils;
 
     public HashOperations(RedisUtils redisUtils) {
@@ -24,14 +18,14 @@ public class HashOperations {
     public void putObject(String key, Object o) {
         if (StringUtils.isEmpty(key) || o == null)
             throw new NullPointerException();
-        Map<String, byte[]> m = ProtoStuffUtils.serializeFields(o);
+        Map<String, byte[]> m = redisUtils.getRedisCodec().encodeFields(o);
         hashOperations.putAll(key, m);
     }
 
     public void putObject(String key, Object o, RedisExpires redisExpires) {
         if (StringUtils.isEmpty(key) || o == null)
             throw new NullPointerException();
-        Map<String, byte[]> m = ProtoStuffUtils.serializeFields(o);
+        Map<String, byte[]> m = redisUtils.getRedisCodec().encodeFields(o);
 
         redisUtils.multi();
         hashOperations.putAll(key, m);
@@ -42,20 +36,20 @@ public class HashOperations {
     public void put(String key, String hashKey, Object o) {
         if (StringUtils.isEmpty(key) || StringUtils.isEmpty(hashKey) || o == null)
             throw new NullPointerException();
-        hashOperations.put(key, hashKey, ProtoStuffUtils.serialize(o));
+        hashOperations.put(key, hashKey, redisUtils.getRedisCodec().encode(o));
     }
 
     public <T> T getObject(String key, Class<T> clazz) {
         if (StringUtils.isEmpty(key) || clazz == null)
             throw new NullPointerException();
         Map<String, byte[]> m = hashOperations.entries(key);
-        return ProtoStuffUtils.deserializeFromFields(m, clazz);
+        return redisUtils.getRedisCodec().decodeFields(m, clazz);
     }
 
     public <T> T get(String key, String hashKey, Class<T> clazz) {
         if (StringUtils.isEmpty(key) || StringUtils.isEmpty(hashKey) || clazz == null)
             throw new NullPointerException();
-        return ProtoStuffUtils.deserialize(hashOperations.get(key, hashKey), clazz);
+        return redisUtils.getRedisCodec().decode(hashOperations.get(key, hashKey), clazz);
     }
 
     public <T> T getSimilarShapeObject(String key, Class<T> clazz) {
@@ -63,7 +57,7 @@ public class HashOperations {
             throw new NullPointerException();
         Set<String> fieldNameSet = Reflect.onClass(clazz).fields().keySet();
         List<byte[]> fieldValBytesList = hashOperations.multiGet(key, fieldNameSet);
-        return ProtoStuffUtils.deserializeFromFields(convertToMap(fieldNameSet, fieldValBytesList), clazz);
+        return redisUtils.getRedisCodec().decodeFields(convertToMap(fieldNameSet, fieldValBytesList), clazz);
     }
 
     private static <K, V> Map<K, V> convertToMap(Collection<K> keys, Collection<V> vals) {

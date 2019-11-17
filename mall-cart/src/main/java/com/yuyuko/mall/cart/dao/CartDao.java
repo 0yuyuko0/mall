@@ -14,9 +14,14 @@ public interface CartDao {
 
     CartItemDTO getCartItem(@Param("userId") Long userId, @Param("productId") Long productId);
 
-    int addCartItem(CartItemDO cartItemDO);
+    int insertCartItem(CartItemDO cartItemDO);
 
     int deleteCartItemById(Long id);
 
-    int updateCartItemCount(@Param("id") Long id, @Param("count") Integer count);
+    int addCartItemCount(@Param("id") Long id, @Param("count") Integer count);
+
+    int updateCartItemCount(@Param("userId") Long userId, @Param("id") Long id,
+                            @Param("count") Integer count);
+
+    int reduceCartItemByOne(@Param("userId") Long userId, @Param("id") Long id);
 }

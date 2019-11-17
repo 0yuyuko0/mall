@@ -8,16 +8,12 @@ import com.yuyuko.mall.stock.dao.StockDao;
 import com.yuyuko.mall.stock.entity.StockDO;
 import com.yuyuko.mall.stock.exception.StockDeductRollbackException;
 import com.yuyuko.mall.stock.exception.StockNotEnoughException;
-import com.yuyuko.mall.stock.manager.StockManager;
-import com.yuyuko.mall.stock.param.StockCreateParam;
 import com.yuyuko.mall.stock.param.StockDeductParam;
-import com.yuyuko.mall.stock.tcc.StockDeductTccAction;
+import com.yuyuko.mall.stock.service.tcc.StockDeductTccAction;
 import io.seata.spring.annotation.GlobalTransactional;
-import org.apache.ibatis.session.SqlSessionFactory;
 import org.apache.rocketmq.common.message.MessageExt;
 import org.apache.rocketmq.spring.annotation.RocketMQMessageListener;
 import org.apache.rocketmq.spring.core.RocketMQListener;
-import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -26,30 +22,16 @@ import java.util.List;
 @Service
 public class StockService {
     @Autowired
-    StockManager stockManager;
-
-    @Autowired
-    StockDao stockDao;
-
-    @Autowired
-    IdGenerator idGenerator;
+    private IdGenerator idGenerator;
 
     @Autowired
     private MessageCodec messageCodec;
-
-    public Integer getStock(Long productId) {
-        return stockManager.getStock(productId);
-    }
-
-    public List<Integer> listStocks(List<Long> productIds) {
-        return stockManager.listStocks(productIds);
-    }
-
+    
     @Autowired
-    SqlSessionFactory sqlSessionFactory;
-
+    private StockDeductTccAction stockDeductTccAction;
+    
     @Autowired
-    StockDeductTccAction stockDeductTccAction;
+    private StockDao stockDao;
 
     @GlobalTransactional(rollbackFor = StockDeductRollbackException.class, noRollbackFor =
             StockNotEnoughException.class)
@@ -80,17 +62,5 @@ public class StockService {
             stockDO.setStock(createMessage.getStock());
             return stockDO;
         }
-    }
-
-    public void createProductStock(StockCreateParam createParam) {
-        StockDO stockDO = buildStockDO(createParam);
-        stockDao.insert(stockDO);
-    }
-
-    private StockDO buildStockDO(StockCreateParam createParam) {
-        StockDO stockDO = new StockDO();
-        BeanUtils.copyProperties(createParam, stockDO);
-        stockDO.setId(idGenerator.nextId());
-        return stockDO;
     }
 }

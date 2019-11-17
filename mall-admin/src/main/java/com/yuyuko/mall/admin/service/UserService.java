@@ -125,6 +125,8 @@ public class UserService {
 
         @Override
         public RocketMQLocalTransactionState checkLocalTransaction(Message msg) {
+            if (msg == null)
+                return RocketMQLocalTransactionState.ROLLBACK;
             UserRegisterMessage registerMessage =
                     messageCodec.decode((byte[]) msg.getPayload(),
                             UserRegisterMessage.class);

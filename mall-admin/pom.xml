@@ -37,6 +37,12 @@
         </dependency>
         <dependency>
             <groupId>com.yuyuko.mall</groupId>
+            <artifactId>mall-test</artifactId>
+            <version>${mall-test.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.yuyuko.mall</groupId>
             <artifactId>mall-redis</artifactId>
             <version>${mall-redis.version}</version>
         </dependency>

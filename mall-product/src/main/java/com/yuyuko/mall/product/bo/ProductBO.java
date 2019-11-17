@@ -1,6 +1,6 @@
 package com.yuyuko.mall.product.bo;
 
-import com.yuyuko.mall.shop.dto.ShopInfoDTO;
+import com.yuyuko.mall.shop.dto.ShopDTO;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
@@ -14,7 +14,7 @@ public class ProductBO {
     private Long id;
 
     @ApiModelProperty(value = "商品所属商店的简易信息",position = 2)
-    private ShopInfoDTO shopInfo;
+    private ShopDTO shopInfo;
 
     @ApiModelProperty(value = "商品品牌id",position = 3)
     private Long brandId;

@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <parent>
@@ -21,6 +22,11 @@
         </dependency>
         <dependency>
             <groupId>com.yuyuko.mall</groupId>
+            <artifactId>mall-test</artifactId>
+            <version>${mall-test.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.yuyuko.mall</groupId>
             <artifactId>mall-common</artifactId>
             <version>${mall-common.version}</version>
         </dependency>
@@ -34,7 +40,6 @@
             <artifactId>mall-session</artifactId>
             <version>${mall-session.version}</version>
         </dependency>
-
         <dependency>
             <groupId>org.springframework.cloud</groupId>
             <artifactId>spring-cloud-starter-dubbo</artifactId>
@@ -57,7 +62,11 @@
         </dependency>
         <dependency>
             <groupId>org.mybatis.spring.boot</groupId>
-            <artifactId> mybatis-spring-boot-starter</artifactId>
+            <artifactId>mybatis-spring-boot-starter</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.mybatis.spring.boot</groupId>
+            <artifactId>mybatis-spring-boot-starter-test</artifactId>
         </dependency>
         <dependency>
             <groupId>com.spring4all</groupId>
@@ -70,6 +79,10 @@
         <dependency>
             <groupId>org.springframework.cloud</groupId>
             <artifactId>spring-cloud-starter-alibaba-nacos-config</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>io.seata</groupId>
+            <artifactId>seata-all</artifactId>
         </dependency>
 
         <dependency>

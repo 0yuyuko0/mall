@@ -20,16 +20,16 @@
     </insert>
     <insert id="insert">
         insert into `order` (id, user_id, shop_id, shop_name, status, payment_method, total_price,
-                           delivery_fee, actual_payment, delivery_method,
-                           time_expected_delivery, consignee_name, consignee_phone_number,
-                           delivery_address, time_create)
+                             delivery_fee, actual_payment, delivery_method,
+                             time_expected_delivery, consignee_name, consignee_phone_number,
+                             delivery_address, time_create)
         values (#{id}, #{userId}, #{shopId}, #{shopName}, #{status}, #{paymentMethod},
-                #{totalPrice},#{deliveryFee}, #{actualPayment}, #{deliveryMethod},
+                #{totalPrice}, #{deliveryFee}, #{actualPayment}, #{deliveryMethod},
                 #{timeExpectedDelivery}, #{consigneeName}, #{consigneePhoneNumber},
                 #{deliveryAddress}, #{timeCreate});
     </insert>
     <update id="updateOrderStatus">
-        update mall_order.`order`
+        update `order`
         set status = #{status}
         where id = #{id}
     </update>
@@ -54,13 +54,18 @@
         where id = #{id}
     </select>
     <select id="exist" resultType="java.lang.Boolean">
-        select true
-        from `order`
-        where id = #{id}
+        select ifnull((
+            select true
+            from `order`
+            where id = #{id}
+        ), false)
     </select>
     <select id="checkOrderStatus" resultType="java.lang.Boolean">
-        select true
-        from `order`
-        where id = #{id} and status = #{status}
+        select ifnull((
+            select true
+            from `order`
+            where id = #{id}
+              and status = #{status}
+        ),false)
     </select>
 </mapper>

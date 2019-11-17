@@ -54,7 +54,7 @@ public class RedisSessionAutoConfiguration {
     @Bean
     @ConditionalOnWebApplication(type = ConditionalOnWebApplication.Type.REACTIVE)
     public WebSessionIdResolver webSessionIdResolver(
-            @Value("${server.servlet.session.cookie.name}") String cookieName) {
+            @Value("${session.cookie.name:SESSION}") String cookieName) {
         return new CookieWebSessionIdResolver() {
             private CookieSerializer resolver = new DefaultCookieSerializer();
 

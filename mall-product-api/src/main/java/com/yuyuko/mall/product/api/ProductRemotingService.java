@@ -12,5 +12,5 @@ public interface ProductRemotingService {
 
     List<CartItemProductDTO> listCartItemProducts(@NotEmpty List<Long> productIds);
 
-    boolean exist(Long productId);
+    boolean exist(@NotNull Long productId);
 }

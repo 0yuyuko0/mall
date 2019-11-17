@@ -2,7 +2,10 @@ package com.yuyuko.mall.search.order.param;
 
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
+import lombok.experimental.Accessors;
 import org.hibernate.validator.constraints.Range;
 import org.springframework.format.annotation.DateTimeFormat;
 
@@ -10,6 +13,7 @@ import java.time.LocalDateTime;
 
 @Data
 @ApiModel
+@Accessors(chain = true)
 public class OrderSearchParam {
     @ApiModelProperty(value = "搜索关键字", position = 1, required = true)
     private String keyword;
@@ -32,13 +36,15 @@ public class OrderSearchParam {
 
     @Data
     @ApiModel
+    @AllArgsConstructor
+    @NoArgsConstructor
     public static class TimeRange {
         @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
         @ApiModelProperty(value = "起始时间，格式如下 \"yyyy-MM-dd'T'HH:mm:ss\"，举例：2000-10-31T01:30:00", position = 1)
-        private LocalDateTime from;
+        private String from;
 
         @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
         @ApiModelProperty(value = "终止时间", position = 2)
-        private LocalDateTime to;
+        private String to;
     }
 }

@@ -35,13 +35,21 @@ class UserControllerTest {
         MockHttpSession session = new MockHttpSession();
         session.setAttribute("userSessionInfo",
                 new UserSessionInfo(1L, null, null, null, null));
+        //授权
         MvcResult result = mvc.perform(
                 get("/home/get")
                         .session(session)
         ).andReturn();
+
         Result o = JSON.parseObject(result.getResponse().getContentAsByteArray(), Result.class);
         assertEquals(SUCCESS,o.getCode());
         assertNotNull(o.getData());
+
+        //未授权
+        result = mvc.perform(
+                get("/home/get")
+        ).andReturn();
+        assertNotEquals(200,result.getResponse().getStatus());
     }
 
 }

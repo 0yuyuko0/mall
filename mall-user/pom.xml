@@ -26,6 +26,11 @@
         </dependency>
         <dependency>
             <groupId>com.yuyuko.mall</groupId>
+            <artifactId>mall-test</artifactId>
+            <version>${mall-test.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.yuyuko.mall</groupId>
             <artifactId>mall-admin-message</artifactId>
             <version>${mall-admin-message.version}</version>
         </dependency>

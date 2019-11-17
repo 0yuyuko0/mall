@@ -8,7 +8,6 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 
 @SpringBootApplication(exclude = DataSourceAutoConfiguration.class)
 @EnableTransactionManagement
-@EnableAspectJAutoProxy(exposeProxy = true)
 public class StockApplication {
 
     public static void main(String[] args) {

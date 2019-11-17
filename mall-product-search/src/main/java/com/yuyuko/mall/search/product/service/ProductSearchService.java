@@ -2,7 +2,6 @@ package com.yuyuko.mall.search.product.service;
 
 import com.yuyuko.idempotent.annotation.Idempotent;
 import com.yuyuko.mall.common.message.MessageCodec;
-import com.yuyuko.mall.common.utils.ProtoStuffUtils;
 import com.yuyuko.mall.product.message.ProductCreateMessage;
 import com.yuyuko.mall.search.product.dao.ProductRepository;
 import com.yuyuko.mall.search.product.entity.Product;
@@ -25,6 +24,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.elasticsearch.core.ElasticsearchTemplate;
+import org.springframework.data.elasticsearch.core.query.IndexQueryBuilder;
 import org.springframework.data.elasticsearch.core.query.NativeSearchQueryBuilder;
 import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
@@ -43,11 +43,7 @@ public class ProductSearchService {
             selectorExpression = "create"
     )
     @Service
-    @Slf4j
-    public static class ProductCreateListener implements RocketMQListener<MessageExt> {
-        @Autowired
-        ProductRepository productRepository;
-
+    public class ProductCreateListener implements RocketMQListener<MessageExt> {
         @Autowired
         private MessageCodec messageCodec;
 
@@ -58,15 +54,16 @@ public class ProductSearchService {
                     ProductCreateMessage.class);
             Product product = new Product();
             BeanUtils.copyProperties(createMessage, product);
-            if (!productRepository.existsById(createMessage.getId())) {
-                productRepository.save(product);
-            }
+            product.setSales(0);
+            product.setCommentCount(0);
+            product.setGoodCommentCount(0);
+            productRepository.save(product);
         }
     }
 
 
     @Autowired
-    ProductRepository productRepository;
+    private ProductRepository productRepository;
 
     private int productPageSize = 60;
 

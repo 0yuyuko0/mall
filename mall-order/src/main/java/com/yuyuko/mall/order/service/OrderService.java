@@ -1,6 +1,5 @@
 package com.yuyuko.mall.order.service;
 
-import com.yuyuko.idempotent.annotation.Idempotent;
 import com.yuyuko.mall.common.idgenerator.IdGenerator;
 import com.yuyuko.mall.common.message.MessageCodec;
 import com.yuyuko.mall.order.dto.OrderDTO;
@@ -18,14 +17,12 @@ import com.yuyuko.mall.order.param.OrderCreateParam;
 import com.yuyuko.mall.stock.api.StockRemotingService;
 import com.yuyuko.mall.stock.exception.StockNotEnoughException;
 import com.yuyuko.mall.stock.param.StockDeductParam;
+import io.seata.spring.annotation.GlobalTransactional;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.dubbo.config.annotation.Reference;
 import org.apache.rocketmq.client.producer.LocalTransactionState;
 import org.apache.rocketmq.client.producer.TransactionSendResult;
-import org.apache.rocketmq.common.message.MessageExt;
-import org.apache.rocketmq.spring.annotation.RocketMQMessageListener;
 import org.apache.rocketmq.spring.annotation.RocketMQTransactionListener;
-import org.apache.rocketmq.spring.core.RocketMQListener;
 import org.apache.rocketmq.spring.core.RocketMQLocalTransactionListener;
 import org.apache.rocketmq.spring.core.RocketMQLocalTransactionState;
 import org.apache.rocketmq.spring.core.RocketMQTemplate;
@@ -77,6 +74,7 @@ public class OrderService {
 
     @Reference
     private StockRemotingService stockRemotingService;
+
 
     public void createOrder(Long userId, String nickname, OrderCreateParam createParam) {
         //持久化消息
@@ -141,10 +139,12 @@ public class OrderService {
 
         @Override
         public RocketMQLocalTransactionState checkLocalTransaction(Message msg) {
+            if (msg == null)
+                return RocketMQLocalTransactionState.ROLLBACK;
             OrderCreateMessage createMessage =
                     messageCodec.decode((byte[]) msg.getPayload(),
                             OrderCreateMessage.class);
-            if (orderDao.exist(createMessage.getId()).orElse(false))
+            if (orderDao.exist(createMessage.getId()))
                 return RocketMQLocalTransactionState.COMMIT;
             return RocketMQLocalTransactionState.ROLLBACK;
         }
@@ -152,7 +152,7 @@ public class OrderService {
 
     private List<OrderPersistMessage> buildOrderPersistMessages(Long userId,
                                                                 OrderCreateParam createParam) {
-        return CollectionUtils.convertTo(createParam.getShopOrders(), shopOrderCreateParam -> {
+        return CollectionUtils.transListToList(createParam.getShopOrders(), shopOrderCreateParam -> {
             OrderPersistMessage orderPersistMessage = new OrderPersistMessage();
             orderPersistMessage.setId(idGenerator.nextId());
             orderPersistMessage.setUserId(userId);
@@ -169,7 +169,7 @@ public class OrderService {
             orderPersistMessage.setConsigneePhoneNumber(createParam.getConsigneePhoneNumber());
             orderPersistMessage.setDeliveryAddress(createParam.getDeliveryAddress());
             orderPersistMessage.setTimeCreate(LocalDateTime.now());
-            orderPersistMessage.setOrderItemPersistMessages(CollectionUtils.convertTo(shopOrderCreateParam.getOrderItems(),
+            orderPersistMessage.setOrderItemPersistMessages(CollectionUtils.transListToList(shopOrderCreateParam.getOrderItems(),
                     orderItem -> {
                         OrderItemPersistMessage orderItemPersistMessage =
                                 new OrderItemPersistMessage();
@@ -190,7 +190,7 @@ public class OrderService {
     private List<OrderCreateMessage> buildOrderCreateMessages(
             Long userId, String nickname,
             List<OrderPersistMessage> orderPersistMessages) {
-        return CollectionUtils.convertTo(orderPersistMessages, orderPersistMessage -> {
+        return CollectionUtils.transListToList(orderPersistMessages, orderPersistMessage -> {
             OrderCreateMessage orderCreateMessage = new OrderCreateMessage();
             orderCreateMessage.setId(orderPersistMessage.getId());
             orderCreateMessage.setUserId(userId);
@@ -199,7 +199,7 @@ public class OrderService {
             orderCreateMessage.setShopName(orderPersistMessage.getShopName());
             orderCreateMessage.setStatus(orderPersistMessage.getStatus());
             orderCreateMessage.setTimeCreate(orderPersistMessage.getTimeCreate());
-            orderCreateMessage.setOrderItems(CollectionUtils.convertTo(orderPersistMessage.getOrderItemPersistMessages(),
+            orderCreateMessage.setOrderItems(CollectionUtils.transListToList(orderPersistMessage.getOrderItemPersistMessages(),
                     orderItemPersistMessage -> {
                         OrderItemCreateMessage orderItemCreateMessage =
                                 new OrderItemCreateMessage();
@@ -226,7 +226,7 @@ public class OrderService {
                         orderId)))
                         .setHeader(RocketMQHeaders.KEYS, idGenerator.nextId())
                         .build(),
-                order.getOrderItems());
+                order);
         if (sendResult.getLocalTransactionState() == LocalTransactionState.ROLLBACK_MESSAGE)
             throw new StockNotEnoughException();
     }
@@ -234,10 +234,12 @@ public class OrderService {
     @RocketMQTransactionListener(txProducerGroup = "tx-order-pay")
     public class OrderPayTxMessageListener implements RocketMQLocalTransactionListener {
         @Override
+        @GlobalTransactional
         public RocketMQLocalTransactionState executeLocalTransaction(Message msg, Object arg) {
-            List<OrderItemDTO> orderItemDTOS = (List<OrderItemDTO>) arg;
+            OrderDTO orderDTO = (OrderDTO) arg;
+            orderDao.updateOrderStatus(orderDTO.getId(), WAIT_SEND);
             try {
-                deductStock(orderItemDTOS);
+                deductStock(orderDTO.getOrderItems());
             } catch (StockNotEnoughException e) {
                 return RocketMQLocalTransactionState.ROLLBACK;
             }
@@ -252,38 +254,13 @@ public class OrderService {
 
         @Override
         public RocketMQLocalTransactionState checkLocalTransaction(Message msg) {
+            if (msg == null)
+                return RocketMQLocalTransactionState.ROLLBACK;
             OrderPayMessage payMessage = messageCodec.decode(((byte[]) msg.getPayload()),
                     OrderPayMessage.class);
-            if (orderDao.checkOrderStatus(payMessage.getId(), WAIT_SEND).orElse(false))
+            if (orderDao.checkOrderStatus(payMessage.getId(), WAIT_SEND))
                 return RocketMQLocalTransactionState.COMMIT;
             return RocketMQLocalTransactionState.ROLLBACK;
-        }
-    }
-
-    @RocketMQMessageListener(
-            consumerGroup = "order-order",
-            topic = "order",
-            selectorExpression = "pay"
-    )
-    @Service
-    public class OrderStatusChangeMessageListener implements RocketMQListener<MessageExt> {
-        @Override
-        @Idempotent(id = "#message.getKeys()")
-        public void onMessage(MessageExt message) {
-            long id;
-            int status;
-            switch (message.getTags()) {
-                case "pay":
-                    OrderPayMessage payMessage = messageCodec.decode(message.getBody(),
-                            OrderPayMessage.class);
-                    id = payMessage.getId();
-                    status = WAIT_SEND;
-                    break;
-                default:
-                    log.warn("未知的tag[{}]", message.getTags());
-                    return;
-            }
-            orderDao.updateOrderStatus(id, status);
         }
     }
 
@@ -323,9 +300,12 @@ public class OrderService {
 
         @Override
         public RocketMQLocalTransactionState checkLocalTransaction(Message msg) {
+            if (msg == null)
+                return RocketMQLocalTransactionState.ROLLBACK;
+
             OrderCancelMessage message = messageCodec.decode(((byte[]) msg.getPayload()),
                     OrderCancelMessage.class);
-            if (orderDao.checkOrderStatus(message.getId(), CANCELED).orElse(false))
+            if (orderDao.checkOrderStatus(message.getId(), CANCELED))
                 return RocketMQLocalTransactionState.COMMIT;
             return RocketMQLocalTransactionState.ROLLBACK;
         }

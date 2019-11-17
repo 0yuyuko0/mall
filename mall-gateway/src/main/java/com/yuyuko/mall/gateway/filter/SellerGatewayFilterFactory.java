@@ -14,7 +14,7 @@ import reactor.core.publisher.Mono;
 
 @Component
 public class SellerGatewayFilterFactory extends AbstractGatewayFilterFactory<SellerGatewayFilterFactory.Config> {
-    public SellerGatewayFilterFactory(){
+    public SellerGatewayFilterFactory() {
         super(Config.class);
     }
 
@@ -26,13 +26,13 @@ public class SellerGatewayFilterFactory extends AbstractGatewayFilterFactory<Sel
         return (exchange, chain) -> {
             WebSession session = exchange.getSession().block();
             UserSessionInfo userSessionInfo = session.getAttribute(userSessionInfoName);
-            if(userSessionInfo.getIsSeller())
+            if (userSessionInfo.getIsSeller())
                 return chain.filter(exchange);
-            else{
+            else {
                 ServerHttpResponse response = exchange.getResponse();
                 response.getHeaders().setContentType(MediaType.APPLICATION_JSON_UTF8);
                 return response.writeWith(Mono.just(response.bufferFactory().wrap(
-                        JSON.toJSONBytes(CommonResult.accessDenied())
+                        JSON.toJSONBytes(CommonResult.notSeller())
                 )));
             }
         };

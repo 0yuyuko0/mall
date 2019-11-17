@@ -1,0 +1,8 @@
+spring:
+  data:
+    elasticsearch:
+      clusterName: elasticsearch
+      clusterNodes: 127.0.0.1:9301
+elasticsearch:
+  index: order
+  type: _doc

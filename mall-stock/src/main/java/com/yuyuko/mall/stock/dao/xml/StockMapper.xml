@@ -12,6 +12,11 @@
         set stock = stock - #{count}
         where product_id = #{productId}
     </update>
+    <delete id="deleteByProductId">
+        delete
+        from stock
+        where product_id = #{id}
+    </delete>
 
     <select id="getStock" resultType="java.lang.Integer">
         select stock
@@ -21,10 +26,21 @@
     <select id="listStocks" resultType="com.yuyuko.mall.stock.dto.StockDTO">
         select product_id,stock
         from stock
-        where product_id in
-        <foreach collection="list" item="item" separator="," open="(" close=")">
-            #{item}
-        </foreach>
-        order by field(product_id,1)
+        where
+        <choose>
+            <when test="list != null and list.size() > 0">
+                product_id in
+                <foreach collection="list" item="item" separator="," open="(" close=")">
+                    #{item}
+                </foreach>
+                order by field(
+                <foreach collection="list" item="item" open="product_id," separator="," close=")">
+                    #{item}
+                </foreach>
+            </when>
+            <otherwise>
+                false
+            </otherwise>
+        </choose>
     </select>
 </mapper>

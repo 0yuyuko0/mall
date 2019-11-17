@@ -1,6 +1,7 @@
 package com.yuyuko.mall.order.message;
 
 import lombok.Data;
+import lombok.experimental.Accessors;
 import org.hibernate.validator.constraints.Length;
 
 import javax.validation.constraints.DecimalMax;
@@ -9,6 +10,7 @@ import javax.validation.constraints.NotNull;
 import java.math.BigDecimal;
 
 @Data
+@Accessors(chain = true)
 public class OrderItemCreateMessage {
     @NotNull
     private Long id;

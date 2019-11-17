@@ -1,6 +1,6 @@
 rocketmq:
   producer:
-    group: product
+    group: seller-product
 swagger:
   title: SellerProduct
   description: 卖家商品管理
