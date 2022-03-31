@@ -58,7 +58,7 @@
         <mall-common.version>0.0.1-4-SNAPSHOT</mall-common.version>
         <idempotent.version>0.0.1</idempotent.version>
         <java.version>11</java.version>
-        <spring-boot.version>2.1.6.RELEASE</spring-boot.version>
+        <spring-boot.version>2.5.12</spring-boot.version>
         <spring-cloud-alibaba.version>0.9.0.RELEASE</spring-cloud-alibaba.version>
         <spring-cloud-gateway.version>2.1.2.RELEASE</spring-cloud-gateway.version>
         <spring-boot-admin.version>2.1.6</spring-boot-admin.version>
